@@ -92,6 +92,7 @@ namespace Player
             else
             {
                 player.ActivatePlayer();
+                StartCoroutine(AssignPlayerTeam());
                 EnableWormVisually();
                 GetComponent<WormPhysics>().ToggleWormCollisions(true);
                 GetComponent<WormPhysics>().ToggleWormKinematics(false);   // forces can't move kinematic bodies

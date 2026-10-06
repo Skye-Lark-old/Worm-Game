@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace Player
 {
-    public class PlayerGraphics : NetworkBehaviour
+    public class PlayerGraphics : MonoBehaviour
     {
         public TextMeshPro usernameText;
         
@@ -120,21 +120,21 @@ namespace Player
                 teamColor = Color.blue;
             }
 
-            ServerHandleTeamChanged(gameObject, teamColor);
+            StartCoroutine(HandleTeamChanged(gameObject, teamColor));
         }
 
-        [ServerRpc]
-        private void ServerHandleTeamChanged(GameObject player, Color teamColor)
-        {
-            ObserverHandleTeamChanged(player, teamColor);
-        }
-
-        [ObserversRpc]
-        private void ObserverHandleTeamChanged(GameObject player, Color teamColor)
-        {
-            if (player != gameObject) return;
-            StartCoroutine(HandleTeamChanged(player, teamColor));
-        }
+        // [ServerRpc]
+        // private void ServerHandleTeamChanged(GameObject player, Color teamColor)
+        // {
+        //     ObserverHandleTeamChanged(player, teamColor);
+        // }
+        //
+        // [ObserversRpc]
+        // private void ObserverHandleTeamChanged(GameObject player, Color teamColor)
+        // {
+        //     if (player != gameObject) return;
+        //     StartCoroutine(HandleTeamChanged(player, teamColor));
+        // }
 
         private IEnumerator HandleTeamChanged(GameObject player, Color teamColor)
         {

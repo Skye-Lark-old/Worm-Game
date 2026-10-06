@@ -218,14 +218,14 @@ RectTransform:
   m_GameObject: {fileID: 3378935721403069532}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 4, z: 4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8071018323496679240}
+  m_Father: {fileID: 4665594383874748790}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -6}
+  m_AnchoredPosition: {x: 0, y: -1.5}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &8190137075067831675
@@ -642,6 +642,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WormForwardMovement
   finCount: 0
+  lookDirection: {x: 0, y: 0, z: 0}
+  TickDelta: 0
+  movementPhase: 0
 --- !u!114 &5698610630824124828
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -706,15 +709,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57358961f3c287c4193b8ae1bd1de0ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerGraphics
-  _isSetup: 0
-  _prefabId: -2147483648
-  _componentIndex: -2147483648
-  _shouldBePooled: 0
-  _parent: {fileID: 0}
-  _invertedPathToNearestParent: 
-  _directChildren: []
-  _networkRules: {fileID: 0}
-  _visitiblityRules: {fileID: 0}
   usernameText: {fileID: 2271580523657890023}
 --- !u!114 &4446911218883556763
 MonoBehaviour:
@@ -1002,7 +996,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5338661192410525059}
-  - {fileID: 480365976456628364}
   - {fileID: 4665594383874748790}
   m_Father: {fileID: 7505438985572923784}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1235,6 +1228,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2859644196306987670}
+  - {fileID: 480365976456628364}
   m_Father: {fileID: 8071018323496679240}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2316475577208393085
