@@ -15,12 +15,13 @@ namespace Player
         private PredictedRigidbody wormHead;
         private NetworkedPhysicsObject wormHeadNetworkedPhysicsObject;
         private Player player;
+        private Vector3 Look => player.wormForwardMovement.lookDirection;
         
         #endregion
 
         #region Built-In Methods
         
-        private void Start()
+        private void Awake()
         {
             player = GetComponent<Player>();
             wormParts = player.wormBodySegments.list;
@@ -138,15 +139,12 @@ namespace Player
             wormHeadNetworkedPhysicsObject.AddForce(GameParameters.WormMoveForce * wormHead.transform.forward);
         }
 
-        private void RotateHeadUngrounded(float speed) {
-            Vector3 camDirFlat = Flatten(global::Player.LocalPlayer.Instance.thirdPersonCamera.transform.forward);
+        private void RotateHeadUngrounded(float speed)
+        {
+            Vector3 camDirFlat = Flatten(Look);
+            if (camDirFlat.sqrMagnitude < 0.01f) return;
             Quaternion targetYaw = Quaternion.LookRotation(camDirFlat);
-    
-            wormHead.rotation = Quaternion.Slerp(
-                wormHead.rotation,
-                targetYaw,
-                speed * Time.fixedDeltaTime
-            );
+            wormHead.rotation = Quaternion.Slerp(wormHead.rotation, targetYaw, speed * Time.fixedDeltaTime);
         }
     
         private static Vector3 Flatten(Vector3 v) {
@@ -156,9 +154,10 @@ namespace Player
     
         private void SnapHeadRotation()
         {
-            if (LocalPlayer.Instance.thirdPersonCamera == null) return;
+            Vector3 camDir = Look;
+            if (camDir.sqrMagnitude < 0.01f) return; 
+            camDir.Normalize();
             
-            Vector3 camDir = LocalPlayer.Instance.thirdPersonCamera.transform.forward.normalized;
             float pitch = CalculatePitch(camDir);
     
             // Clamp pitch to the allowed range
@@ -174,12 +173,8 @@ namespace Player
         }
 
         private float CalculatePitch(Vector3 camDir) {
-            float camPitch = Vector3.SignedAngle(
-                Vector3.ProjectOnPlane(camDir, Vector3.up),
-                camDir,
-                global::Player.LocalPlayer.Instance.thirdPersonCamera.transform.right
-            );
-    
+            Vector3 camRight = Vector3.Cross(Vector3.up, camDir).normalized;
+            float camPitch = Vector3.SignedAngle(Vector3.ProjectOnPlane(camDir, Vector3.up), camDir, camRight);
             float normalized = Mathf.InverseLerp(GameParameters.MinCameraPitch, GameParameters.MaxCameraPitch, camPitch);
             normalized = 1f - Mathf.Clamp01(normalized);
     

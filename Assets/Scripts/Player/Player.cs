@@ -42,6 +42,7 @@ namespace Player
             ticksThisFrame++;
             //if (Time.frameCount % 60 == 0) Debug.Log($"tick delta {delta:F4} vs fixed {Time.fixedDeltaTime:F4}");
             if (!isPlayerActive) return;
+            SetWormGrounding();
             inSimulate = true;
             
             wormForwardMovement.TickDelta = delta;
@@ -208,7 +209,7 @@ namespace Player
             
             if (!isPlayerActive) return;
             
-            SetWormGrounding();
+            //SetWormGrounding();
 
             if (thirdPersonCamera != null)
             {

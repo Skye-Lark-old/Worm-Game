@@ -33,7 +33,7 @@ namespace Player
 
         #region Built-In Methods
         
-        void Start()
+        void Awake()
         {
             SetVariables();
         }
