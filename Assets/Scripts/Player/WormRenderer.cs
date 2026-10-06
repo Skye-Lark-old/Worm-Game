@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using PurrNet.Prediction;
 using UnityEngine;
 
 namespace Player
@@ -27,6 +28,8 @@ namespace Player
         public LineRenderer LineRenderer => lineRenderer;
         private MeshFilter meshFilter;
         private MeshRenderer meshRenderer;
+        private readonly List<Vector3> visualPositions = new List<Vector3>();
+        private bool warnedMissingGraphics;
 
         private global::Player.Player player;
 
@@ -93,7 +96,7 @@ namespace Player
                 meshRenderer.sharedMaterial = wormMaterial;
         }
 
-        void Update() => GenerateTubeMesh();
+        void LateUpdate() => GenerateTubeMesh();
 
         void GenerateTubeMesh()
         {
@@ -101,8 +104,7 @@ namespace Player
             var uvs       = new List<Vector2>();
             var triangles = new List<int>();
 
-            var originalPositions = new List<Vector3> { player.wormHead.position };
-            originalPositions.AddRange(player.wormBodySegments.list.ConvertAll(p => p.position));
+            var originalPositions = GetVisualPositions();
     
             if (originalPositions.Count < 2) return;
 
@@ -433,10 +435,36 @@ namespace Player
 
         void UpdateLineRenderer()
         {
-            var positions = new List<Vector3> { player.wormHead.position };
-            positions.AddRange(player.wormBodySegments.list.ConvertAll(p => p.position));
+            var positions = GetVisualPositions();
             lineRenderer.positionCount = positions.Count;
             lineRenderer.SetPositions(positions.ToArray());
+        }
+        
+        private Transform VisualOf(Transform physical)
+        {
+            if (physical == null) return null;
+
+            var pt = physical.GetComponent<PredictedTransform>();
+            if (pt != null && pt.graphics != null) return pt.graphics;
+
+            if (!warnedMissingGraphics)
+            {
+                warnedMissingGraphics = true;
+                Debug.LogWarning($"WormRenderer: no PredictedTransform graphics on {physical.name}, using the stepped physics transform", physical);
+            }
+            return physical;
+        }
+
+        private List<Vector3> GetVisualPositions()
+        {
+            visualPositions.Clear();
+            visualPositions.Add(VisualOf(player.wormHead).position);
+
+            var segments = player.wormBodySegments.list;
+            for (int i = 0; i < segments.Count; i++)
+                visualPositions.Add(VisualOf(segments[i]).position);
+
+            return visualPositions;
         }
     }
 }
