@@ -22,6 +22,7 @@ namespace WormLeague
             if (!isServer)
             {
                 //GetComponent<Rigidbody>().isKinematic = true;
+                //test
             }
         }
 
