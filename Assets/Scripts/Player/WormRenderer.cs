@@ -467,7 +467,7 @@ namespace Player
                 visualPositions.Add(VisualOf(segments[i]).position);
 
             return visualPositions;
-            //
+            
         }
     }
 }
