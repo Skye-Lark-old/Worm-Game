@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using CreatureBuilder;
 using CreatureParts;
 using DG.Tweening;
 using PurrNet;
@@ -48,6 +49,35 @@ namespace Player
             wormForwardMovement.TickDelta = delta;
             wormForwardMovement.lookDirection = input.lookForward;
             wormForwardMovement.movementPhase = state.movementPhase;
+            
+            if (input.die && !state.isDead)
+            {
+                state.isDead = true;
+
+                wormHeadCopy = DuplicatePartForDeath(wormHead.gameObject, headPrefab);
+                foreach (Transform bodySegment in wormBodySegments)
+                    DuplicatePartForDeath(bodySegment.gameObject, wormSegmentPrefab);
+                foreach (GameObject attachedPart in attachedWormParts)
+                    DuplicatePartForDeath(attachedPart, attachedPart.GetComponent<PartDragging>().partData.prefab);
+
+                GetComponent<WormPhysics>().ToggleWormCollisions(false);
+                GetComponent<WormPhysics>().ToggleWormKinematics(true);
+            }
+            else if (input.respawn)
+            {
+                state.isDead = false;
+                playerSpawning.TeleportWorm(input.respawnPosition, input.respawnRotation);
+                GetComponent<WormPhysics>().ToggleWormCollisions(true);
+                GetComponent<WormPhysics>().ToggleWormKinematics(false);
+            }
+
+            if (state.isDead)
+            {
+                CurrentState = WormState.Dead;
+                inSimulate = false;         
+                return;
+            }
+            if (CurrentState == WormState.Dead) CurrentState = WormState.Idle;
 
             if (IsWormAttacking)
             {
@@ -84,6 +114,7 @@ namespace Player
         public struct State : IPredictedData<State>
         {
             public float movementPhase;
+            public bool isDead;
             public void Dispose() {}
         }
 
@@ -91,6 +122,9 @@ namespace Player
         { 
             public bool moveForward, jump, attack;
             public Vector3 lookForward;
+            public bool die, respawn;
+            public Vector3 respawnPosition;
+            public Quaternion respawnRotation;
             public void Dispose() {}
         }
         
@@ -101,12 +135,35 @@ namespace Player
             input.attack |= wantsAttack;  wantsAttack = false;
             
             if (thirdPersonCamera != null) input.lookForward = thirdPersonCamera.transform.forward;
+            
+            input.die |= wantsDie;  wantsDie = false;
+            if (wantsRespawn)
+            {
+                input.respawn = true;
+                input.respawnPosition = respawnPos;
+                input.respawnRotation = respawnRot;
+                wantsRespawn = false;
+            }
         }
         
         private void LateUpdate()
         {
             if (isOwner && dbgFrames++ < 20) Debug.Log($"ticks this frame: {ticksThisFrame}");
             ticksThisFrame = 0;
+        }
+        
+        public void RequestRespawn(Vector3 position, Quaternion rotation)
+        {
+            wantsRespawn = true; respawnPos = position; respawnRot = rotation; deathRequested = false;
+        }
+        
+        protected override void UpdateView(State viewState, State? verified)
+        {
+            if (viewState.isDead == viewWasDead) return;
+            viewWasDead = viewState.isDead;
+
+            if (viewState.isDead) { OnWormDeath?.Invoke(); HandleDeathObservers(); }
+            else playerSpawning.HandleRespawnVisuals();
         }
         
         #endregion
@@ -130,8 +187,15 @@ namespace Player
         public bool IsInvincible { get; set; }
 
         public bool canDie = false;
+
+        public GameObject headPrefab;
         
         private bool wantsMove, wantsJump, wantsAttack, inSimulate;
+        
+        private bool wantsDie, wantsRespawn, deathRequested, viewWasDead;
+        private Vector3 respawnPos;
+        private Quaternion respawnRot;
+        
         private float attackTimer;
         
         #endregion
@@ -459,13 +523,16 @@ namespace Player
                 return;
             }
             
+            if (CurrentState == WormState.Dead || deathRequested) return;
+            
             if (CurrentState == WormState.Dead) return;
             if (!canDie)
             {
                 return;
             }
+            deathRequested = true;
             
-            OnWormDeath?.Invoke();
+            //OnWormDeath?.Invoke();
             
             CurrentState = WormState.Dead;
             if (isOwner) currentPlayerHealth = 0;
@@ -483,7 +550,8 @@ namespace Player
 
             IsInvincible = true;
             
-            this.GetComponent<PlayerNetwork>().RequestDeath();
+            //this.GetComponent<PlayerNetwork>().RequestDeath();
+            wantsDie = true;
             
             playerSpawning.TryToRespawn();
         }
@@ -522,32 +590,33 @@ namespace Player
             currentPlayerHealth -= hitInfo.damage;
             // Only invoke damage screenShake locally
             screenShakeImpulseSource.GenerateImpulseWithVelocity(Vector3.down * GameParameters.TakeDamageScreenShakeIntensity);
-            this.GetComponent<PlayerNetwork>().ObserversOnTakeDamage(hitInfo);
+            //this.GetComponent<PlayerNetwork>().ObserversOnTakeDamage(hitInfo);
+            RaiseTakeDamage(hitInfo);
         }
         
         public void HandleDeathObservers()
         {
             playerSpawning.DisableWormVisually();
     
-            wormHeadCopy = DuplicatePartForDeath(wormHead.gameObject);
+            //wormHeadCopy = DuplicatePartForDeath(wormHead.gameObject);
             DisablePartForDeath(wormHead.gameObject);
             
             foreach (Transform bodySegment in wormBodySegments)
             {
-                DuplicatePartForDeath(bodySegment.gameObject);
+                //DuplicatePartForDeath(bodySegment.gameObject);
                 DisablePartForDeath(bodySegment.gameObject);
             }
     
             foreach (GameObject attachedPart in attachedWormParts)
             {
-                DuplicatePartForDeath(attachedPart);
+                //DuplicatePartForDeath(attachedPart);
                 attachedPart.SetActive(false);
             }
 
-            if (isOwner && owner == predictionManager.localPlayer)
-            {
-                GetComponent<WormPhysics>().ToggleWormKinematics(true);
-            }
+            // if (isOwner && owner == predictionManager.localPlayer)
+            // {
+            //     GetComponent<WormPhysics>().ToggleWormKinematics(true);
+            // }
         }
 
         public void DisablePartForDeath(GameObject part)
@@ -641,10 +710,31 @@ namespace Player
             }
         }
         
-        private GameObject DuplicatePartForDeath(GameObject original)
-        {
-           GameObject copy = Instantiate(original.gameObject, original.transform.position, original.transform.rotation);
+        private GameObject DuplicatePartForDeath(GameObject original, GameObject sourcePrefab)
+        { 
+            PredictedObjectID? id = predictionManager.hierarchy.Create(
+                sourcePrefab, original.transform.position, original.transform.rotation);
+            GameObject copy = id.GetGameObject(predictionManager);
+            if (copy == null)
+            {
+                Debug.LogWarning($"Could not create dead part from {sourcePrefab.name}, is it in the registered prefab list?");
+                return null; 
+            } 
+            
+            
            copy.AddComponent<DeadBodyPart>();
+           if (copy.GetComponent<CreatureBodySegment>() != null)
+           {
+               copy.GetComponent<CreatureBodySegment>().visualBodySegment.GetComponent<MeshRenderer>().material =
+                   original.GetComponent<CreatureBodySegment>().visualBodySegment.GetComponent<MeshRenderer>().material;
+               print("copy material set to: " + copy.GetComponent<CreatureBodySegment>().visualBodySegment.GetComponent<MeshRenderer>().material);
+           }
+           else if (copy.GetComponent<WormHead>() != null)
+           {
+               copy.GetComponent<WormHead>().wormVisualHeadWithMaterial.GetComponent<MeshRenderer>().material =
+                   original.GetComponent<WormHead>().wormVisualHeadWithMaterial.GetComponent<MeshRenderer>().material;
+           }
+           
            Rigidbody originalRb = original.GetComponent<Rigidbody>();
            Rigidbody copyRb = copy.GetComponent<Rigidbody>();
     
@@ -656,22 +746,28 @@ namespace Player
                 copyRb.angularVelocity = originalRb.angularVelocity * GameParameters.DeadPartVelocityMultiplier;
             }
             
-            if (!original.TryGetComponent<AttachablePart>(out _))
-            {
-                if (copy.TryGetComponent<CreatureBodySegment>(out var segment))
-                {
-                    segment.SetMaterial(DeadBodyPartMaterial);
-                    segment.visualBodySegment.GetComponent<MeshRenderer>().enabled = true;
-                }
-                else
-                    foreach (MeshRenderer renderer in copy.GetComponentsInChildren<MeshRenderer>())
-                        renderer.material = DeadBodyPartMaterial;
-            }
+            // if (!original.TryGetComponent<AttachablePart>(out _))
+            // {
+            //     if (copy.TryGetComponent<CreatureBodySegment>(out var segment))
+            //     {
+            //         segment.SetMaterial(DeadBodyPartMaterial);
+            //         segment.visualBodySegment.GetComponent<MeshRenderer>().enabled = true;
+            //     }
+            //     else
+            //         foreach (MeshRenderer renderer in copy.GetComponentsInChildren<MeshRenderer>())
+            //             renderer.material = DeadBodyPartMaterial;
+            // }
             
             foreach (Joint joint in copy.GetComponents<Joint>())
                 Destroy(joint);
             foreach (Joint joint in copy.GetComponentsInChildren<Joint>())
                 Destroy(joint);
+            
+            // Debug.Log($"DeadBodyPartMaterial: {(DeadBodyPartMaterial ? DeadBodyPartMaterial.name : "NULL")} | part {original.name}");
+            // foreach (var r in original.GetComponentsInChildren<Renderer>(true))
+            //     Debug.Log($"  ORIGINAL {r.name} | enabled {r.enabled} | active {r.gameObject.activeInHierarchy} | mat {(r.sharedMaterial ? r.sharedMaterial.name : "NULL")}");
+            // foreach (var r in copy.GetComponentsInChildren<Renderer>(true))
+            //     Debug.Log($"  DEBRIS   {r.name} | enabled {r.enabled} | active {r.gameObject.activeInHierarchy} | mat {(r.sharedMaterial ? r.sharedMaterial.name : "NULL")}");
 
             return copy;
         }

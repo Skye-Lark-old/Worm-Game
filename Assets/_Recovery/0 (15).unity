@@ -1169,7 +1169,6 @@ MonoBehaviour:
   _extrapolateInput: 1
   PlayerName: Player1
   canDie: 0
-  headPrefab: {fileID: 0}
   playerScore: 1
   maxPlayerHealth: 100
   currentPlayerHealth: 100

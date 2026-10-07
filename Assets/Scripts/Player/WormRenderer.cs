@@ -100,6 +100,8 @@ namespace Player
 
         void GenerateTubeMesh()
         {
+            if (meshFilter == null) return;
+            
             var vertices  = new List<Vector3>();
             var uvs       = new List<Vector2>();
             var triangles = new List<int>();

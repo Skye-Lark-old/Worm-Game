@@ -170,6 +170,7 @@ namespace Player
             GetComponent<WormRenderer>().enabled = true;
             // GetComponent<PredictedTransform>().graphics = GetComponent<WormRenderer>().transform;
             GetComponent<WormRenderer>().Restart();
+            GetComponent<WormRenderer>().EnableRendering(); 
             
             if (player.wormVisualHead.GetComponent<MeshRenderer>() != null) player.wormVisualHead.GetComponent<MeshRenderer>().enabled = true;
             GameObject visualHeadWithMaterial = player.wormHead.GetComponent<WormHead>().wormVisualHeadWithMaterial;
@@ -404,17 +405,17 @@ namespace Player
 
         private IEnumerator RespawnPlayer()
         {
-            if (GameSceneList.IsSceneAGameScene(SceneManager.GetActiveScene().name))
-            {
-                OnWormRespawn?.Invoke();
-            }
+            // if (GameSceneList.IsSceneAGameScene(SceneManager.GetActiveScene().name))
+            // {
+            //     OnWormRespawn?.Invoke();
+            // }
 
             if (player == LocalPlayer.Instance)
             {
                 yield return StartCoroutine(RespawnPlayerAsOwner());
             }
 
-            RespawnPlayerAsNonOwner();
+            //RespawnPlayerAsNonOwner();
         }
         
         private IEnumerator RespawnPlayerAsOwner()
@@ -430,7 +431,12 @@ namespace Player
                 StartCoroutine(AssignPlayerTeam());
             }
             
-            yield return StartCoroutine(SpawnAtSpawnPoint());
+            //yield return StartCoroutine(SpawnAtSpawnPoint());
+            player.canDie = true;
+            player.currentPlayerHealth = player.maxPlayerHealth;
+            player.RequestRespawn(spawnPoint, spawnRotation);
+            player.IsInvincible = false;
+            yield return null;
         }
 
         // [ServerRpc]
@@ -509,6 +515,18 @@ namespace Player
             hasBeenVisuallyEnabledInGameScene = true;
             EnableWormVisually();
             GetComponent<WormPhysics>().ToggleWormCollisions(true);
+        }
+        
+        public void TeleportWorm(Vector3 position, Quaternion rotation)
+        {
+            SetWormSpawnRotation(rotation);
+            SetWormSpawnPosition(position);
+        }
+
+        public void HandleRespawnVisuals()
+        {
+            OnWormRespawn?.Invoke();
+            RespawnPlayerAsNonOwner();
         }
 
         #endregion

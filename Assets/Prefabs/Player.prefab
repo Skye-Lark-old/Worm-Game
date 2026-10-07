@@ -441,6 +441,7 @@ MonoBehaviour:
   _extrapolateInput: 1
   PlayerName: Player1
   canDie: 0
+  headPrefab: {fileID: 5337178865086199065, guid: 5718f014bc1f8294c8a6b55f2c0961a2, type: 3}
   playerScore: 1
   maxPlayerHealth: 100
   currentPlayerHealth: 100
