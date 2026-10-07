@@ -49,7 +49,8 @@ namespace Player
             if (!wormWired && wormConstructor.TryWireWorm(state.segmentIds))
             {
                 wormWired = true;
-                playerSpawning.OnWormWired();
+                if (!wormSetupDone) { wormSetupDone = true; playerSpawning.OnWormWired(); }
+                else playerSpawning.OnWormRewired();
             }
 
             if (!isPlayerActive) return;
@@ -185,6 +186,13 @@ namespace Player
             else playerSpawning.HandleRespawnVisuals();
         }
         
+        private void OnRollbackFinished()
+        {
+            if (!wormWired) return;
+            foreach (Transform s in wormBodySegments)     
+                if (s == null) { wormWired = false; return; }
+        }
+        
         #endregion
         
         #region Public Properties
@@ -218,7 +226,7 @@ namespace Player
         private float attackTimer;
         
         private WormConstructor wormConstructor;
-        private bool wormWired;  
+        private bool wormWired, wormSetupDone; 
         
         #endregion
         
@@ -324,12 +332,15 @@ namespace Player
         protected override void LateAwake()
         {
             wormConstructor = GetComponent<WormConstructor>();
-            this.GetComponent<PlayerSpawning>().InitialSpawn();
             playerSpawning = GetComponent<PlayerSpawning>();
+            predictionManager.onRollbackFinished += OnRollbackFinished;
+            playerSpawning.InitialSpawn();
             playerID = owner.Value;
-
-            if (isServer && !PlayerRegister.Players.ContainsKey(playerID))
-                PlayerRegister.RegisterClient(playerID, true, true);
+        }
+        
+        protected override void Destroyed()
+        {
+            if (predictionManager != null) predictionManager.onRollbackFinished -= OnRollbackFinished;
         }
         
         #endregion

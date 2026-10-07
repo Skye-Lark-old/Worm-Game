@@ -442,6 +442,16 @@ namespace Player
             lineRenderer.SetPositions(positions.ToArray());
         }
         
+        public void DestroyMesh()
+        {
+            if (wormMeshObject != null)
+            {
+                wormMeshObject.name = "WormMesh (destroyed)";   
+                Destroy(wormMeshObject);
+            }
+            wormMeshObject = null; meshFilter = null; meshRenderer = null; wormMesh = null;
+        }
+        
         private Transform VisualOf(Transform physical)
         {
             if (physical == null) return null;
@@ -460,14 +470,17 @@ namespace Player
         private List<Vector3> GetVisualPositions()
         {
             visualPositions.Clear();
+            if (player == null || player.wormHead == null) return visualPositions;
+
             visualPositions.Add(VisualOf(player.wormHead).position);
 
             var segments = player.wormBodySegments;
             for (int i = 0; i < segments.Count; i++)
+            {
+                if (segments[i] == null) continue;
                 visualPositions.Add(VisualOf(segments[i]).position);
-
+            }
             return visualPositions;
-            
         }
     }
 }

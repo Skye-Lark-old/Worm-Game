@@ -94,6 +94,7 @@ namespace Player
                 player.ActivatePlayer();
                 StartCoroutine(AssignPlayerTeam());
                 EnableWormVisually();
+                hasBeenVisuallyEnabledInGameScene = true;
                 GetComponent<WormPhysics>().ToggleWormCollisions(true);
                 GetComponent<WormPhysics>().ToggleWormKinematics(false);   // forces can't move kinematic bodies
             }
@@ -149,12 +150,20 @@ namespace Player
             yield return null;
         }
         
+        public void OnWormRewired()
+        {
+            bool kinematic = player.isOwner && !GameSceneList.IsSceneAGameScene(SceneManager.GetActiveScene().name);
+            var wp = GetComponent<WormPhysics>();
+            wp.ToggleWormCollisions(true);
+            wp.ToggleWormKinematics(kinematic);
+        }
+        
         public void DisableWormVisually()
         {
             GetComponent<WormRenderer>().DisableRendering();
             player.wormHead.GetComponent<WormHead>().wormVisualHeadWithMaterial.GetComponent<MeshRenderer>().enabled = false;
             
-            if (transform.Find("WormMesh") != null) Destroy(transform.Find("WormMesh").gameObject);
+            if (transform.Find("WormMesh") != null) GetComponent<WormRenderer>().DestroyMesh();
             if (player.wormVisualHead.GetComponent<MeshRenderer>() != null) player.wormVisualHead.GetComponent<MeshRenderer>().enabled = false;
             
             GameObject visualHeadWithMaterial = player.wormHead.GetComponent<WormHead>().wormVisualHeadWithMaterial;
@@ -167,14 +176,12 @@ namespace Player
 
         public void EnableWormVisually()
         {
-            GetComponent<WormRenderer>().enabled = true;
-            // GetComponent<PredictedTransform>().graphics = GetComponent<WormRenderer>().transform;
-            GetComponent<WormRenderer>().Restart();
-            GetComponent<WormRenderer>().EnableRendering(); 
-            
-            if (player.wormVisualHead.GetComponent<MeshRenderer>() != null) player.wormVisualHead.GetComponent<MeshRenderer>().enabled = true;
+            if (player.wormVisualHead.GetComponent<MeshRenderer>() != null)
+                player.wormVisualHead.GetComponent<MeshRenderer>().enabled = true;
             GameObject visualHeadWithMaterial = player.wormHead.GetComponent<WormHead>().wormVisualHeadWithMaterial;
             visualHeadWithMaterial.GetComponent<MeshRenderer>().enabled = true;
+            foreach (MeshRenderer mr in visualHeadWithMaterial.GetComponentsInChildren<MeshRenderer>())
+                mr.enabled = true;
             
             foreach (MeshRenderer mr in visualHeadWithMaterial.GetComponentsInChildren<MeshRenderer>())
             {
