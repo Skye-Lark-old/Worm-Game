@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CreatureParts;
 using GameLoop.multiplayer;
 using PurrNet;
+using PurrNet.Pooling;
 using PurrNet.Prediction;
 using UnityEngine;
 
@@ -17,33 +18,66 @@ namespace Player
             Debug.Log($"player: {player}");
         }
         
-        public void CreateWormSegments()
+        public bool CreateWormSegments(DisposableList<PredictedObjectID> ids)
         {
             if (player == null) player = GetComponent<Player>();
-            
-            CreaturePart previousSegment = player.wormHead.GetComponent<CreaturePart>();
-    
+
             for (int i = 0; i < player.WormSegmentCount; i++)
             {
-                //GameObject newSegment = Object.Instantiate(player.wormSegmentPrefab, transform);
                 Vector3 segmentPosition = player.wormHead.position + -player.wormHead.forward * (player.MaxPartDistance * (i + 1));
                 var segmentID = player.predictionManager.hierarchy.Create(player.wormSegmentPrefab, segmentPosition, player.wormHead.rotation, player.owner);
-                GameObject newSegment = segmentID.GetGameObject(player.predictionManager);
-                Debug.LogWarning("Could not properly give ownership because of switch to purrdiction");
+                if (segmentID == null)
+                {
+                    Debug.LogError("Worm segment create failed (is the prefab registered?)");
+                    return false;
+                }
+                ids.Add(segmentID.Value);
+            }
+            return true;
+        }
+
+        // Runs once per peer; returns false until every segment object can be resolved
+        public bool TryWireWorm(DisposableList<PredictedObjectID> ids)
+        {
+            if (player == null) player = GetComponent<Player>();
+            if (ids.Count < player.WormSegmentCount) return false;
+
+            var segments = new List<GameObject>(ids.Count);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                GameObject go = player.predictionManager.hierarchy.GetGameObject(ids[i]);
+                if (go == null) return false;
+                segments.Add(go);
+            }
+
+            // --- your original wiring, unchanged ---
+            player.wormBodySegments.Clear();
+            CreaturePart previousSegment = player.wormHead.GetComponent<CreaturePart>();
+
+            for (int i = 0; i < segments.Count; i++)
+            {
+                GameObject newSegment = segments[i];
                 newSegment.transform.SetParent(transform, true);
-                //newSegment.GetComponent<CreatureBodySegment>().GiveOwnership(player.owner);
                 newSegment.name = "Worm segment " + i;
                 newSegment.GetComponent<CreatureBodySegment>().previousSegment = previousSegment;
                 player.wormBodySegments.Add(newSegment.transform);
                 previousSegment = newSegment.GetComponent<CreatureBodySegment>();
-                //Debug.Log($"Creating worm segment as {player.owner}, segment: {newSegment.name}, segment owner: {newSegment.GetComponent<CreatureBodySegment>().owner}");
             }
-            
+
             for (int i = 0; i < player.wormBodySegments.Count - 1; i++)
             {
-                player.wormBodySegments[i].GetComponent<CreatureBodySegment>().nextSegment = 
+                player.wormBodySegments[i].GetComponent<CreatureBodySegment>().nextSegment =
                     player.wormBodySegments[i + 1].GetComponent<CreatureBodySegment>();
             }
+
+            GetComponent<WormPhysics>().AddCollidersToSegments();
+            AddSegmentJoints();                                   // your original method
+
+            var wp = GetComponent<WormPhysics>();
+            if (player.isOwner) wp.ToggleWormKinematics(true);
+            else { wp.ToggleWormCollisions(true); wp.ToggleWormKinematics(false); }
+
+            return true;
         }
 
         public void ConstructWorm()

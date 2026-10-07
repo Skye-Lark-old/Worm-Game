@@ -24,7 +24,7 @@ namespace Player
         private void Awake()
         {
             player = GetComponent<Player>();
-            wormParts = player.wormBodySegments.list;
+            wormParts = player.wormBodySegments;
             wormHead = player.wormHead.GetComponent<PredictedRigidbody>();
             wormHeadNetworkedPhysicsObject = player.wormHead.GetComponent<NetworkedPhysicsObject>();
         }

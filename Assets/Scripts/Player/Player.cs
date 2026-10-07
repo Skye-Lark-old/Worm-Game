@@ -6,6 +6,7 @@ using CreatureBuilder;
 using CreatureParts;
 using DG.Tweening;
 using PurrNet;
+using PurrNet.Pooling;
 using PurrNet.Prediction;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -41,8 +42,16 @@ namespace Player
         protected override void Simulate(Input input, ref State state, float delta)
         {
             ticksThisFrame++;
-            //if (Time.frameCount % 60 == 0) Debug.Log($"tick delta {delta:F4} vs fixed {Time.fixedDeltaTime:F4}");
+            
+            if (!state.wormBuilt && wormConstructor.CreateWormSegments(state.segmentIds))
+                state.wormBuilt = true;                          // runs once, ever
+
+            if (!wormWired)
+                wormWired = wormConstructor.TryWireWorm(state.segmentIds);   // stops after success
+
             if (!isPlayerActive) return;
+            
+            //if (Time.frameCount % 60 == 0) Debug.Log($"tick delta {delta:F4} vs fixed {Time.fixedDeltaTime:F4}");
             SetWormGrounding();
             inSimulate = true;
             
@@ -115,8 +124,15 @@ namespace Player
         {
             public float movementPhase;
             public bool isDead;
+            public bool wormBuilt;
+            public DisposableList<PredictedObjectID> segmentIds;
             public void Dispose() {}
         }
+        
+        protected override State GetInitialState() => new State
+        {
+            segmentIds = DisposableList<PredictedObjectID>.Create()
+        };
 
         public struct Input : IPredictedData
         { 
@@ -198,6 +214,9 @@ namespace Player
         
         private float attackTimer;
         
+        private WormConstructor wormConstructor;
+        private bool wormWired;  
+        
         #endregion
         
         #region public variables
@@ -214,7 +233,7 @@ namespace Player
         public GameObject wormSegmentPrefab;
         public Transform wormHead;
         public Transform wormVisualHead;
-        public SyncList<Transform> wormBodySegments = new(false);
+        public List<Transform> wormBodySegments = new( );
         public List<GameObject> attachedWormParts;
         public List<GameObject> wormPartsInInventory;
 
@@ -301,6 +320,7 @@ namespace Player
 
         protected override void LateAwake()
         {
+            wormConstructor = GetComponent<WormConstructor>();
             this.GetComponent<PlayerSpawning>().InitialSpawn();
             playerID = owner.Value;
 

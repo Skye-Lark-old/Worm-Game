@@ -26,7 +26,7 @@ namespace Player
         {
             player = GetComponent<Player>();
             wormHead = player.wormHead;
-            wormParts = player.wormBodySegments.list;
+            wormParts = player.wormBodySegments;
             middleIndices = null;
         }
         

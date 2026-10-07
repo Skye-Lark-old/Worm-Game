@@ -321,13 +321,13 @@ namespace Player
             player.wormHeadBut = GetComponent<WormHeadBut>();
             
             player.wormBodySegments.Clear();
-            GetComponent<WormConstructor>().CreateWormSegments();
+            //GetComponent<WormConstructor>().CreateWormSegments();
             
-            GetComponent<WormConstructor>().ConstructWorm();
-            GetComponent<WormPhysics>().AddCollidersToSegments();
+            //GetComponent<WormConstructor>().ConstructWorm();
+            //GetComponent<WormPhysics>().AddCollidersToSegments();
             //GetComponent<WormConstructor>().AddSegmentJointsAsServer(player);
-            GetComponent<WormConstructor>().AddSegmentJoints();
-            GetComponent<WormPhysics>().ToggleWormKinematics(true);
+            //GetComponent<WormConstructor>().AddSegmentJoints();
+            //GetComponent<WormPhysics>().ToggleWormKinematics(true);
 
             if (GameSceneList.IsSceneAGameScene(SceneManager.GetActiveScene().name))
                 SetWormInGameScene();
@@ -488,8 +488,9 @@ namespace Player
             player.currentPlayerHealth = player.maxPlayerHealth;
             
             GetComponent<WormPhysics>().ToggleWormKinematics(true);
+            yield return new WaitUntil(() => player.wormBodySegments.Count == player.WormSegmentCount);
             player.GetComponent<WormConstructor>().ConstructWorm();
-            GetComponent<WormPhysics>().AddCollidersToSegments();
+            //GetComponent<WormPhysics>().AddCollidersToSegments();
             Debug.Log("SAS: constructed");
 
             yield return new WaitForFixedUpdate();

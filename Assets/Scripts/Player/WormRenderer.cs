@@ -462,7 +462,7 @@ namespace Player
             visualPositions.Clear();
             visualPositions.Add(VisualOf(player.wormHead).position);
 
-            var segments = player.wormBodySegments.list;
+            var segments = player.wormBodySegments;
             for (int i = 0; i < segments.Count; i++)
                 visualPositions.Add(VisualOf(segments[i]).position);
 
