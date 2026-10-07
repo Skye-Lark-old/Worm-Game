@@ -1,6 +1,7 @@
 using System;
 using GameLoop.multiplayer;
 using PurrNet;
+using PurrNet.Prediction;
 using UnityEngine;
 
 namespace WormLeague
@@ -26,7 +27,7 @@ namespace WormLeague
 
         public void Reset()
         {
-            NetworkRigidbody rigidBody = gameObject.GetComponent<NetworkRigidbody>();
+            PredictedRigidbody rigidBody = gameObject.GetComponent<PredictedRigidbody>();
             rigidBody.angularVelocity = new Vector3(0,0,0);
             rigidBody.linearVelocity = new Vector3(0,0,0);
             rigidBody.rotation = Quaternion.identity;

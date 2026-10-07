@@ -303,6 +303,9 @@ namespace Player
         {
             this.GetComponent<PlayerSpawning>().InitialSpawn();
             playerID = owner.Value;
+
+            if (isServer && !PlayerRegister.Players.ContainsKey(playerID))
+                PlayerRegister.RegisterClient(playerID, true, true);
         }
         
         #endregion

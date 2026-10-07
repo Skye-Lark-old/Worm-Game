@@ -11,24 +11,30 @@ using Random = UnityEngine.Random;
 
 public class PlayerRegister : PurrMonoBehaviour
 {
-    public static Dictionary<PlayerID, PlayerData> Players;
-    public static UnityEvent<PlayerID, bool> OnPlayerRegisterChanged;
-    public static UnityEvent OnPlayerRegistered;
+    public static readonly Dictionary<PlayerID, PlayerData> Players = new();
+    public static readonly UnityEvent<PlayerID, bool> OnPlayerRegisterChanged = new();
+    public static readonly UnityEvent OnPlayerRegistered = new();
+    public static NetworkManager Manager { get; private set; }
 
     public static PlayerRegister Instance;
 
     private void Awake()
     {
-        OnPlayerRegisterChanged = new UnityEvent<PlayerID, bool>();
-        OnPlayerRegistered = new UnityEvent();
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);   
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
     
-    private void Start()
-    { 
-        Players = new Dictionary<PlayerID, PlayerData>();
-        DontDestroyOnLoad(this);
-        Instance = this;
-    }
+    // private void Start()
+    // { 
+    //     Players = new Dictionary<PlayerID, PlayerData>();
+    //     DontDestroyOnLoad(this);
+    //     Instance = this;
+    // }
 
     private string FixUserName(string newName)
     {
@@ -123,7 +129,7 @@ public class PlayerRegister : PurrMonoBehaviour
     public static void RegisterClient(PlayerID playerID, bool firstJoin, bool _)
     {
         Debug.Log("Registering client: "+playerID.id.value);
-        if(!Players.ContainsKey(playerID)) Players[playerID] = new PlayerData { colorIndex = -1 };
+        if(!Players.ContainsKey(playerID)) Players[playerID] = new PlayerData { colorIndex = -1, playerID = playerID };
         PlayerData playerData = Players[playerID];
         playerData.isDisconected = false;
         Players[playerID] = playerData;
@@ -148,6 +154,7 @@ public class PlayerRegister : PurrMonoBehaviour
     
     public override void Subscribe(NetworkManager manager, bool asServer)
     {
+        Manager = manager;
         manager.Subscribe<PlayerData>(OnPlayerDataRequest, asServer);
     }
         
@@ -197,7 +204,11 @@ public class PlayerRegister : PurrMonoBehaviour
 
     private void OnDestroy()
     {
-        Players = null;
+        if (Instance == this)
+        {
+            Instance = null;
+            Players.Clear();       
+        }
     }
     
     private void ColorUpdate(PlayerData data)

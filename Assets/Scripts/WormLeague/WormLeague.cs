@@ -65,67 +65,43 @@ namespace WormLeague
 
         public void OnGoalScored(string team)
         {
-            if (ball.LastTouchingPlayer == null) return;
+            if (!isServer) return;
+            if (ball == null || ball.LastTouchingPlayer == null) return;
 
-            if (ball.LastTouchingPlayer.owner is not { } ownerID) return;
-
-            if (!PlayerRegister.Players.ContainsKey(ownerID))
+            var manager = NetworkManager.main;
+            if (manager == null)
             {
-                Debug.LogWarning($"Last touching player owner '{ownerID}' not in PlayerRegister.");
+                Debug.LogWarning("Goal: NetworkManager.main is null");
                 return;
             }
-            
-            PlayerRegister.PlayerData scoringPlayer = ball.LastTouchingPlayer.RegisterData;
-            
-            if (team == "blue")
-            {
-                //teamRedScore++;
-                //wormLeagueUI.GoalScored("red", scoringPlayer.name);
-                WormLeagueUI.GoalScoredPacket packet;
-                packet.playerName = scoringPlayer.name;
-                packet.goalName = "red";
-                
-                if (Network.instance == null) return;
-                if (Network.instance.manager == null) return;
-                
-                Network.instance.manager.SendToAll(packet);
 
-            }
-            else if (team == "red")
+            var scorer = ball.LastTouchingPlayer;
+
+            if (!PlayerRegister.Players.TryGetValue(scorer.playerID, out PlayerRegister.PlayerData scoringPlayer))
             {
-                //teamBlueScore++;
-                //wormLeagueUI.GoalScored("blue", scoringPlayer.name);
-                
+                Debug.LogWarning($"Goal: scorer {scorer.playerID} not in PlayerRegister. Keys: {string.Join(", ", PlayerRegister.Players.Keys)}");
+                return;
+            }
+
+            if (team == "blue" || team == "red")
+            {
                 WormLeagueUI.GoalScoredPacket packet;
                 packet.playerName = scoringPlayer.name;
-                packet.goalName = "blue";
-                
-                if (Network.instance == null) return;
-                if (Network.instance.manager == null) return;
-                
-                Network.instance.manager.SendToAll(packet);
+                packet.goalName = team == "blue" ? "red" : "blue";
+                manager.SendToAll(packet);
             }
-            
+
             ball.Reset();
-            
-            if (string.IsNullOrEmpty(scoringPlayer.name)) 
-            {
-                Debug.LogWarning("Scoring player has no name, skipping.");
-                return;
-            }
-            
+
+            if (string.IsNullOrEmpty(scoringPlayer.name))
+                scoringPlayer.name = $"Player {scorer.playerID}";
+
+            scoringPlayer.playerID = scorer.playerID;
             scoringPlayer.score += 1;
 
-            if (!PlayerRegister.Players.ContainsKey(scoringPlayer.playerID)) 
-            {
-                Debug.LogWarning($"Scoring player {scoringPlayer.name} not found in PlayerRegister, skipping score update.");
-                return;
-            }
-            
-            PlayerRegister.Players[scoringPlayer.playerID] = scoringPlayer;
-            Network.instance.manager.SendToAll(scoringPlayer);
+            PlayerRegister.Players[scorer.playerID] = scoringPlayer;
+            manager.SendToAll(scoringPlayer);
         }
-
         public void GameOver()
         {
             if (teamRedScore > teamBlueScore)
