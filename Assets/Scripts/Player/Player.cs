@@ -44,10 +44,13 @@ namespace Player
             ticksThisFrame++;
             
             if (!state.wormBuilt && wormConstructor.CreateWormSegments(state.segmentIds))
-                state.wormBuilt = true;                          // runs once, ever
+                state.wormBuilt = true;                          
 
-            if (!wormWired)
-                wormWired = wormConstructor.TryWireWorm(state.segmentIds);   // stops after success
+            if (!wormWired && wormConstructor.TryWireWorm(state.segmentIds))
+            {
+                wormWired = true;
+                playerSpawning.OnWormWired();
+            }
 
             if (!isPlayerActive) return;
             
@@ -322,6 +325,7 @@ namespace Player
         {
             wormConstructor = GetComponent<WormConstructor>();
             this.GetComponent<PlayerSpawning>().InitialSpawn();
+            playerSpawning = GetComponent<PlayerSpawning>();
             playerID = owner.Value;
 
             if (isServer && !PlayerRegister.Players.ContainsKey(playerID))

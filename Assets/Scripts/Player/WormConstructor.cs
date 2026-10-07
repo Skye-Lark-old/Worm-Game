@@ -73,9 +73,9 @@ namespace Player
             GetComponent<WormPhysics>().AddCollidersToSegments();
             AddSegmentJoints();                                   // your original method
 
-            var wp = GetComponent<WormPhysics>();
-            if (player.isOwner) wp.ToggleWormKinematics(true);
-            else { wp.ToggleWormCollisions(true); wp.ToggleWormKinematics(false); }
+            // var wp = GetComponent<WormPhysics>();
+            // if (player.isOwner) wp.ToggleWormKinematics(true);
+            // else { wp.ToggleWormCollisions(true); wp.ToggleWormKinematics(false); }
 
             return true;
         }

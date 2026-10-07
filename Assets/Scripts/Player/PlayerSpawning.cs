@@ -291,27 +291,8 @@ namespace Player
             if (player == null) player = GetComponent<Player>();
             isRegistered = true;
             Debug.Log($"Player spawned | owner: {player.owner} | isOwner: {player.isOwner} | localPlayer: {player.predictionManager.localPlayer}");
-            
-            if (player.owner == player.predictionManager.localPlayer)
-            {
-                Debug.Log($"Initial spawning as owner: | owner: {player.owner} | isOwner: {player.isOwner} | localPlayer: {player.predictionManager.localPlayer}");
-                StartCoroutine(InitialSpawnAsOwner());
-            }
-            else if (SceneManager.GetActiveScene().name == "GameLobbyScene")
-            {
-                Debug.Log($"spawning player directly in lobby. owner: {player.owner} | isOwner: {player.isOwner} | localPlayer: {player.predictionManager.localPlayer}");
-                SpawnPlayerInLobbyScene();
-            }
-            else
-            {
-                Debug.LogError($"Player spawning failed. owner: {player.owner} | isOwner: {player.isOwner} | localPlayer: {player.predictionManager.localPlayer}");
-            }
-        }
 
-        private IEnumerator InitialSpawnAsOwner()
-        {
-            LocalPlayer.Register(player);
-                
+            // every peer, owner or not
             player.CurrentState = WormState.Idle;
             player.IsWormGrounded = false;
             player.MaxVelocity = GameParameters.WormMaxVelocity;
@@ -319,26 +300,57 @@ namespace Player
             player.wormForwardMovement = GetComponent<WormForwardMovement>();
             player.wormJump = GetComponent<WormJump>();
             player.wormHeadBut = GetComponent<WormHeadBut>();
-            
-            player.wormBodySegments.Clear();
-            //GetComponent<WormConstructor>().CreateWormSegments();
-            
-            //GetComponent<WormConstructor>().ConstructWorm();
-            //GetComponent<WormPhysics>().AddCollidersToSegments();
-            //GetComponent<WormConstructor>().AddSegmentJointsAsServer(player);
-            //GetComponent<WormConstructor>().AddSegmentJoints();
-            //GetComponent<WormPhysics>().ToggleWormKinematics(true);
 
-            if (GameSceneList.IsSceneAGameScene(SceneManager.GetActiveScene().name))
+            if (player.owner == player.predictionManager.localPlayer)
+                LocalPlayer.Register(player);
+        }
+
+        // private IEnumerator InitialSpawnAsOwner()
+        // {
+        //     LocalPlayer.Register(player);
+        //         
+        //     player.CurrentState = WormState.Idle;
+        //     player.IsWormGrounded = false;
+        //     player.MaxVelocity = GameParameters.WormMaxVelocity;
+        //
+        //     player.wormForwardMovement = GetComponent<WormForwardMovement>();
+        //     player.wormJump = GetComponent<WormJump>();
+        //     player.wormHeadBut = GetComponent<WormHeadBut>();
+        //     
+        //     player.wormBodySegments.Clear();
+        //     //GetComponent<WormConstructor>().CreateWormSegments();
+        //     
+        //     //GetComponent<WormConstructor>().ConstructWorm();
+        //     //GetComponent<WormPhysics>().AddCollidersToSegments();
+        //     //GetComponent<WormConstructor>().AddSegmentJointsAsServer(player);
+        //     //GetComponent<WormConstructor>().AddSegmentJoints();
+        //     //GetComponent<WormPhysics>().ToggleWormKinematics(true);
+        //
+        //     if (GameSceneList.IsSceneAGameScene(SceneManager.GetActiveScene().name))
+        //         SetWormInGameScene();
+        //     else if (SceneManager.GetActiveScene().name == "CreatureBuilderScene" && gameObject.activeSelf)
+        //         StartCoroutine(SetWormInCreatureBuilderScene());
+        //     else if (SceneManager.GetActiveScene().name == "GameLobbyScene")
+        //     {
+        //         SpawnPlayerInLobbyScene();
+        //     }
+        //     
+        //     yield return null;
+        // }
+        
+        public void OnWormWired()
+        {
+            if (player.owner == player.predictionManager.localPlayer)
+                GetComponent<WormPhysics>().ToggleWormKinematics(true);
+
+            string scene = SceneManager.GetActiveScene().name;
+
+            if (GameSceneList.IsSceneAGameScene(scene))
                 SetWormInGameScene();
-            else if (SceneManager.GetActiveScene().name == "CreatureBuilderScene" && gameObject.activeSelf)
+            else if (scene == "CreatureBuilderScene" && gameObject.activeSelf)
                 StartCoroutine(SetWormInCreatureBuilderScene());
-            else if (SceneManager.GetActiveScene().name == "GameLobbyScene")
-            {
+            else if (scene == "GameLobbyScene")
                 SpawnPlayerInLobbyScene();
-            }
-            
-            yield return null;
         }
 
         private void SpawnPlayerInLobbyScene()
