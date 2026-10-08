@@ -28,11 +28,16 @@ namespace WormLeague
 
         public void Reset()
         {
+            Vector3 target = new Vector3(0f, 2f, 3f);
+            
             PredictedRigidbody rigidBody = gameObject.GetComponent<PredictedRigidbody>();
-            rigidBody.angularVelocity = new Vector3(0,0,0);
-            rigidBody.linearVelocity = new Vector3(0,0,0);
-            rigidBody.rotation = Quaternion.identity;
-            gameObject.transform.position = new Vector3(0,2,3);
+            rigidBody.angularVelocity = Vector3.zero;
+            rigidBody.linearVelocity  = Vector3.zero;
+            rigidBody.rotation        = Quaternion.identity;
+            rigidBody.position        = target;
+            
+            transform.SetPositionAndRotation(target, Quaternion.identity);
+            Physics.SyncTransforms();
         }
 
         private void OnCollisionEnter(Collision collision)
