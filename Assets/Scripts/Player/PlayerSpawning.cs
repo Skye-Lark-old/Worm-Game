@@ -173,6 +173,8 @@ namespace Player
             var wp = GetComponent<WormPhysics>();
             wp.ToggleWormCollisions(true);
             wp.ToggleWormKinematics(kinematic);
+            if (!player.isOwner)
+                EnableWormVisually();
         }
         
         public void DisableWormVisually()
@@ -189,6 +191,7 @@ namespace Player
             {
                 mr.enabled = false;
             }
+            Debug.Log($"[Visuals] DISABLE owner={player.owner} isOwner={player.isOwner}\n{System.Environment.StackTrace}", this);
         }
 
         public void EnableWormVisually()
@@ -197,6 +200,11 @@ namespace Player
                 player.wormVisualHead.GetComponent<MeshRenderer>().enabled = true;
             GameObject visualHeadWithMaterial = player.wormHead.GetComponent<WormHead>().wormVisualHeadWithMaterial;
             visualHeadWithMaterial.GetComponent<MeshRenderer>().enabled = true;
+            
+            GetComponent<WormRenderer>().enabled = true;
+            GetComponent<WormRenderer>().Restart();
+            GetComponent<WormRenderer>().EnableRendering();
+            
             foreach (MeshRenderer mr in visualHeadWithMaterial.GetComponentsInChildren<MeshRenderer>())
                 mr.enabled = true;
             
