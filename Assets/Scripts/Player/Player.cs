@@ -332,10 +332,16 @@ namespace Player
         {
             wormConstructor = GetComponent<WormConstructor>();
             playerSpawning = GetComponent<PlayerSpawning>();
+
             predictionManager.onRollbackFinished -= OnRollbackFinished;
             predictionManager.onRollbackFinished += OnRollbackFinished;
-            playerSpawning.InitialSpawn();
+
             playerID = owner.Value;
+            
+            if (isServer && PlayerRegister.Players != null && !PlayerRegister.Players.ContainsKey(playerID))
+                PlayerRegister.RegisterClient(playerID, true, true);
+
+            playerSpawning.InitialSpawn();
         }
         
         protected override void Destroyed()
