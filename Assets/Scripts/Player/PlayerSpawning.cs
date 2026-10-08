@@ -33,6 +33,9 @@ namespace Player
         private bool hasBeenVisuallyEnabledInGameScene = false;
 
         private float TimeToWaitForSpawnpointSet = 1f;
+        
+        private bool spawnSequenceStarted;
+        private bool spawnSequenceDone;
 
         public event Action OnWormRespawn;
 
@@ -62,6 +65,18 @@ namespace Player
             SceneManager.sceneLoaded -= OnSceneLoaded;
             if (player != null) LocalPlayer.Unregister(player);
         }
+        
+        private void OnEnable()
+        {
+            Debug.Log($"[Spawn] OnEnable owner={(player != null ? player.owner.ToString() : "?")} started={spawnSequenceStarted} done={spawnSequenceDone}", this);
+
+            // Rollback reconciliation can deactivate this object, which silently kills its coroutines.
+            if (spawnSequenceStarted && !spawnSequenceDone && player != null && player.isOwner)
+            {
+                StartCoroutine(SpawnAtSpawnPoint());
+                StartCoroutine(AssignPlayerTeam());
+            }
+        }
 
         // protected override void OnDespawned()
         // {
@@ -83,6 +98,8 @@ namespace Player
         
         public void SetWormInGameScene()
         {
+            Debug.Log($"[Spawn] SetWormInGameScene owner={player.owner} isOwner={player.isOwner}");
+
             if (!hasBeenVisuallyEnabledInGameScene) DisableWormVisually();
             
             if (player.isOwner)
@@ -110,9 +127,9 @@ namespace Player
         private void SetWormInGameSceneAsOwner()
         {
             Debug.Log($"Setting worm {player.PlayerName} in game scene as owner");
+            spawnSequenceStarted = true;
             StartCoroutine(SpawnAtSpawnPoint());
             player.ActivatePlayer();
-
             StartCoroutine(AssignPlayerTeam());
         }
 
@@ -310,7 +327,10 @@ namespace Player
 
             if (player.owner == player.predictionManager.localPlayer)
                 LocalPlayer.Register(player);
+            
         }
+        
+        void OnDisable() => Debug.Log($"[Spawn] PlayerSpawning disabled, activeSelf={gameObject.activeSelf}", this);
 
         // private IEnumerator InitialSpawnAsOwner()
         // {
@@ -487,6 +507,8 @@ namespace Player
         
         private IEnumerator SpawnAtSpawnPoint()
         {
+            Debug.Log("[Spawn] coroutine START");
+
             float elapsed = 0f;
             while (!spawnPointSet && elapsed < TimeToWaitForSpawnpointSet)
             {
@@ -501,6 +523,7 @@ namespace Player
             
             yield return null;
 
+            Debug.Log($"[Spawn] wait done, spawnPointSet={spawnPointSet}, Camera.main exists={Camera.main != null}");
             deathScreenUI = FindFirstObjectByType<DeathScreenUI>();
             player.thirdPersonCamera = Camera.main?.gameObject;
             player.canDie = true;
@@ -510,10 +533,9 @@ namespace Player
             yield return new WaitUntil(() => player.wormBodySegments.Count == player.WormSegmentCount);
             player.GetComponent<WormConstructor>().ConstructWorm();
             //GetComponent<WormPhysics>().AddCollidersToSegments();
-            Debug.Log("SAS: constructed");
 
             yield return new WaitForFixedUpdate();
-            Debug.Log("SAS: after fixed update");
+            Debug.Log("[Spawn] after fixed update");
 
             SetWormSpawnRotation(spawnRotation);
             SetWormSpawnPosition(spawnPoint);
@@ -522,6 +544,7 @@ namespace Player
             
             GetComponent<WormPhysics>().ToggleWormKinematics(false);
             player.IsInvincible = false;
+            spawnSequenceDone = true;
         }
 
         // [ServerRpc]
@@ -532,6 +555,7 @@ namespace Player
         
         private void EnableWormLocal()
         {
+            Debug.Log("[Spawn] EnableWormLocal");
             hasBeenVisuallyEnabledInGameScene = true;
             EnableWormVisually();
             GetComponent<WormPhysics>().ToggleWormCollisions(true);
@@ -547,6 +571,12 @@ namespace Player
         {
             OnWormRespawn?.Invoke();
             RespawnPlayerAsNonOwner();
+        }
+        
+        private IEnumerator AssignLocalCamera()
+        {
+            while (Camera.main == null) yield return null;
+            player.thirdPersonCamera = Camera.main.gameObject;
         }
 
         #endregion

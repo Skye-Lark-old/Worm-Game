@@ -49,8 +49,7 @@ namespace Player
             if (!wormWired && wormConstructor.TryWireWorm(state.segmentIds))
             {
                 wormWired = true;
-                if (!wormSetupDone) { wormSetupDone = true; playerSpawning.OnWormWired(); }
-                else playerSpawning.OnWormRewired();
+                playerSpawning.OnWormWired();
             }
 
             if (!isPlayerActive) return;
@@ -333,6 +332,7 @@ namespace Player
         {
             wormConstructor = GetComponent<WormConstructor>();
             playerSpawning = GetComponent<PlayerSpawning>();
+            predictionManager.onRollbackFinished -= OnRollbackFinished;
             predictionManager.onRollbackFinished += OnRollbackFinished;
             playerSpawning.InitialSpawn();
             playerID = owner.Value;
