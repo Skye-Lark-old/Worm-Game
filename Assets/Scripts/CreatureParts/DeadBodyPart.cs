@@ -6,6 +6,7 @@ namespace CreatureParts
 {
     public class DeadBodyPart : NetworkBehaviour
     {
+        
         void Start()
         {
             if (isServer) return;
@@ -18,7 +19,7 @@ namespace CreatureParts
             Rigidbody rb = GetComponent<Rigidbody>();
             rb.linearDamping = GameParameters.DeadPartLinearDamping;
             rb.mass = GameParameters.DeadPartMass;
-            StartCoroutine(SelfDestruct());
+            //StartCoroutine(SelfDestruct());
         }
         
         void OnCollisionStay(Collision col)
@@ -36,10 +37,10 @@ namespace CreatureParts
             }
         }
 
-        private IEnumerator SelfDestruct()
-        {
-            yield return new WaitForSeconds(GameParameters.DeadPartDeleteTime);
-            Destroy(gameObject);
-        }
+        // private IEnumerator SelfDestruct()
+        // {
+        //     yield return new WaitForSeconds(GameParameters.DeadPartDeleteTime);
+        //     Destroy(gameObject);
+        // }
     }
 }

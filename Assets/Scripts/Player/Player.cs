@@ -51,6 +51,13 @@ namespace Player
                 wormWired = true;
                 playerSpawning.OnWormWired();
             }
+            
+            if (state.deadPartIds.Count > 0)
+            {
+                state.deadPartTimer -= delta;
+                if (state.deadPartTimer <= 0f)
+                    DeleteDeadParts(state.deadPartIds);
+            }
 
             if (!isPlayerActive) return;
             
@@ -66,11 +73,13 @@ namespace Player
             {
                 state.isDead = true;
 
-                wormHeadCopy = DuplicatePartForDeath(wormHead.gameObject, headPrefab);
+                wormHeadCopy = DuplicatePartForDeath(wormHead.gameObject, headPrefab, state.deadPartIds);
                 foreach (Transform bodySegment in wormBodySegments)
-                    DuplicatePartForDeath(bodySegment.gameObject, wormSegmentPrefab);
+                    DuplicatePartForDeath(bodySegment.gameObject, wormSegmentPrefab, state.deadPartIds);
                 foreach (GameObject attachedPart in attachedWormParts)
-                    DuplicatePartForDeath(attachedPart, attachedPart.GetComponent<PartDragging>().partData.prefab);
+                    DuplicatePartForDeath(attachedPart, attachedPart.GetComponent<PartDragging>().partData.prefab, state.deadPartIds);
+                
+                state.deadPartTimer = GameParameters.DeadPartDeleteTime;
 
                 GetComponent<WormPhysics>().ToggleWormCollisions(false);
                 GetComponent<WormPhysics>().ToggleWormKinematics(true);
@@ -129,12 +138,19 @@ namespace Player
             public bool isDead;
             public bool wormBuilt;
             public DisposableList<PredictedObjectID> segmentIds;
-            public void Dispose() {}
+            public DisposableList<PredictedObjectID> deadPartIds;
+            public float deadPartTimer;
+            public void Dispose()
+            {
+                segmentIds.Dispose();
+                deadPartIds.Dispose();
+            }
         }
         
         protected override State GetInitialState() => new State
         {
-            segmentIds = DisposableList<PredictedObjectID>.Create()
+            segmentIds = DisposableList<PredictedObjectID>.Create(),
+            deadPartIds = DisposableList<PredictedObjectID>.Create()
         };
 
         public struct Input : IPredictedData
@@ -754,7 +770,7 @@ namespace Player
             }
         }
         
-        private GameObject DuplicatePartForDeath(GameObject original, GameObject sourcePrefab)
+        private GameObject DuplicatePartForDeath(GameObject original, GameObject sourcePrefab, DisposableList<PredictedObjectID> deadIds)
         { 
             PredictedObjectID? id = predictionManager.hierarchy.Create(
                 sourcePrefab, original.transform.position, original.transform.rotation);
@@ -763,7 +779,9 @@ namespace Player
             {
                 Debug.LogWarning($"Could not create dead part from {sourcePrefab.name}, is it in the registered prefab list?");
                 return null; 
-            } 
+            }
+
+            deadIds.Add(id.Value);
             
             
            copy.AddComponent<DeadBodyPart>();
@@ -870,6 +888,14 @@ namespace Player
             float signedAngle = Vector3.SignedAngle(wormHead.forward, cameraForward, Vector3.up);
             float clampedAngle = Mathf.Clamp(signedAngle, -90f, 90f);
             wormVisualHead.rotation = Quaternion.AngleAxis(clampedAngle, Vector3.up) * wormHead.rotation;
+        }
+        
+        private void DeleteDeadParts(DisposableList<PredictedObjectID> ids)
+        {
+            for (int i = 0; i < ids.Count; i++)
+                predictionManager.hierarchy.Delete(ids[i]);
+            ids.Clear();
+            wormHeadCopy = null;
         }
 
         #endregion
