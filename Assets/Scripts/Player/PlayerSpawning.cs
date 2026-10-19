@@ -386,6 +386,13 @@ namespace Player
                 StartCoroutine(SetWormInCreatureBuilderScene());
             else if (scene == "GameLobbyScene")
                 SpawnPlayerInLobbyScene();
+            
+            foreach (var seg in player.wormBodySegments)
+            foreach (var id in seg.GetComponents<PurrNet.Prediction.PredictedIdentity>())
+                Debug.Log($"[Own] {seg.name} {id.GetType().Name} owner={id.owner} isOwner={id.isOwner} kinematic={seg.GetComponent<Rigidbody>().isKinematic}");
+
+            foreach (var id in player.wormHead.GetComponents<PurrNet.Prediction.PredictedIdentity>())
+                Debug.Log($"[Own] head {id.GetType().Name} owner={id.owner} isOwner={id.isOwner} kinematic={player.wormHead.GetComponent<Rigidbody>().isKinematic}");
         }
 
         private void SpawnPlayerInLobbyScene()

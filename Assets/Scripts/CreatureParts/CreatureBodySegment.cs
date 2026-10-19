@@ -6,7 +6,7 @@ namespace CreatureParts
 {
     public class CreatureBodySegment : CreaturePart
     {
-        public bool IsScrunched { get; private set; }
+        public bool IsScrunched => currentState.scrunchTimeLeft > 0f;
         public GameObject visualBodySegment;
 
         public CreaturePart previousSegment;
@@ -14,27 +14,33 @@ namespace CreatureParts
 
         private Coroutine scrunchCoroutine;
 
-        void Start()
-        {
-            IsScrunched = true;
-        }
+        // void Start()
+        // {
+        //     IsScrunched = true;
+        // }
 
+        // public void SetIsScrunched()
+        // {
+        //     IsScrunched = true;
+        //     if (scrunchCoroutine != null)
+        //     {
+        //         StopCoroutine(scrunchCoroutine);
+        //     }
+        //
+        //     scrunchCoroutine = StartCoroutine(ScrunchTimer());
+        // }
+        //
+        // private IEnumerator ScrunchTimer()
+        // {
+        //     yield return new WaitForSeconds(GameParameters.WormSegmentScrunchTime);
+        //     IsScrunched = false;
+        //     scrunchCoroutine = null;
+        // }
+        
         public void SetIsScrunched()
         {
-            IsScrunched = true;
-            if (scrunchCoroutine != null)
-            {
-                StopCoroutine(scrunchCoroutine);
-            }
-
-            scrunchCoroutine = StartCoroutine(ScrunchTimer());
-        }
-
-        private IEnumerator ScrunchTimer()
-        {
-            yield return new WaitForSeconds(GameParameters.WormSegmentScrunchTime);
-            IsScrunched = false;
-            scrunchCoroutine = null;
+            ref var s = ref currentState;
+            s.scrunchTimeLeft = GameParameters.WormSegmentScrunchTime;
         }
 
         public Rigidbody AddJoint(Transform wormPart, Rigidbody previousSegmentRigidBody)

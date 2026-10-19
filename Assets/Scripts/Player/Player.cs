@@ -38,6 +38,9 @@ namespace Player
         #region Purrdiction
         
         private int ticksThisFrame, dbgFrames;
+        private float statMaxLag;
+        private PredictedTransform headPT;
+        private CreaturePart headPart;
 
         protected override void Simulate(Input input, ref State state, float delta)
         {
@@ -62,6 +65,7 @@ namespace Player
             if (!isPlayerActive) return;
             
             //if (Time.frameCount % 60 == 0) Debug.Log($"tick delta {delta:F4} vs fixed {Time.fixedDeltaTime:F4}");
+            RefreshAllGrounding(delta);
             SetWormGrounding();
             inSimulate = true;
             
@@ -131,6 +135,14 @@ namespace Player
             state.movementPhase = wormForwardMovement.movementPhase;
             inSimulate = false;
         }
+        
+        private void RefreshAllGrounding(float delta)
+        {
+            if (headPart == null) headPart = wormHead.GetComponent<CreaturePart>();
+            headPart.RefreshGrounding(delta);
+            for (int i = 0; i < segmentParts.Count; i++) segmentParts[i].RefreshGrounding(delta);
+            foreach (var part in attachedWormParts) part.GetComponent<CreaturePart>().RefreshGrounding(delta);
+        }
 
         public struct State : IPredictedData<State>
         {
@@ -183,8 +195,44 @@ namespace Player
         
         private void LateUpdate()
         {
-            if (isOwner && dbgFrames++ < 20) Debug.Log($"ticks this frame: {ticksThisFrame}");
+            if (isOwner)
+            {
+                statFrames++; statTicks += ticksThisFrame; statMaxTicks = Mathf.Max(statMaxTicks, ticksThisFrame);
+                statTimer += Time.unscaledDeltaTime;
+                
+                if (isOwner && wormHead != null)
+                {
+                    if (headPT == null) headPT = wormHead.GetComponent<PredictedTransform>();
+                    if (headPT != null && headPT.graphics != null)
+                        statMaxLag = Mathf.Max(statMaxLag, Vector3.Distance(wormHead.position, headPT.graphics.position));
+                }
+                
+                if (statTimer >= 2f)
+                {
+                    Debug.Log($"[Perf] fps={statFrames / statTimer:F0} ticks/s={statTicks / statTimer:F0} rollbacks/s={rollbackCount / statTimer:F0} maxTicks={statMaxTicks} maxHeadGraphicsLag={statMaxLag:F2}");
+                    rollbackCount = 0;
+                    
+                    statTimer = 0; statFrames = 0; statTicks = 0; statMaxTicks = 0;
+                    statMaxLag = 0;
+                }
+            }
             ticksThisFrame = 0;
+
+            if (isPlayerActive && thirdPersonCamera != null) RotateVisualHead();
+        }
+        
+        [ContextMenu("Log Prediction Policies")]
+        public void LogPolicies()
+        {
+            foreach (var id in FindObjectsByType<PredictedIdentity>(FindObjectsSortMode.None))
+                Debug.Log($"[Policy] {id.name} {id.GetType().Name} applied={id.predictionPolicy} resolved={id.GetResolvedPredictionPolicy()} isOwner={id.isOwner}", id);
+        }
+        
+        private void OnDrawGizmos()
+        {
+            if (wormHead == null) return;
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(wormHead.position, 0.45f);
         }
         
         public void RequestRespawn(Vector3 position, Quaternion rotation)
@@ -226,6 +274,8 @@ namespace Player
         public bool IsWormAttacking => CurrentState == WormState.Attacking;
         public bool IsWormInAttackCooldown => CurrentState == WormState.AttackCooldown;
         
+        public readonly List<CreaturePart> segmentParts = new();
+        
         public bool IsInvincible { get; set; }
 
         public bool canDie = false;
@@ -242,6 +292,8 @@ namespace Player
         
         private WormConstructor wormConstructor;
         private bool wormWired, wormSetupDone; 
+        private Transform headGraphics;
+        private int rollbackCount;
         
         #endregion
         
@@ -277,6 +329,7 @@ namespace Player
         public string playerTeam;
         
         public Material DeadBodyPartMaterial;
+        private float statTimer; private int statFrames, statTicks, statMaxTicks;
         
         #endregion
         
@@ -322,7 +375,7 @@ namespace Player
 
             if (thirdPersonCamera != null)
             {
-                RotateVisualHead();
+                //RotateVisualHead();
             }
 
             // if (IsWormAttacking)
@@ -849,9 +902,9 @@ namespace Player
         {
             IsWormGrounded = false;
             
-            foreach (var segment in wormBodySegments)
+            foreach (var segment in segmentParts)
             {
-                if (segment.GetComponent<CreaturePart>().IsGrounded)
+                if (segment.IsGrounded)
                 {
                     IsWormGrounded = true;
                     IsWormGroundedBySegments = true;
@@ -885,9 +938,15 @@ namespace Player
 
             if (cameraForward.sqrMagnitude < 0.01f) return;
 
-            float signedAngle = Vector3.SignedAngle(wormHead.forward, cameraForward, Vector3.up);
+            if (headGraphics == null)
+            {
+                var pt = wormHead.GetComponent<PredictedTransform>();
+                headGraphics = (pt != null && pt.graphics != null) ? pt.graphics : wormHead;
+            }
+
+            float signedAngle = Vector3.SignedAngle(headGraphics.forward, cameraForward, Vector3.up);
             float clampedAngle = Mathf.Clamp(signedAngle, -90f, 90f);
-            wormVisualHead.rotation = Quaternion.AngleAxis(clampedAngle, Vector3.up) * wormHead.rotation;
+            wormVisualHead.rotation = Quaternion.AngleAxis(clampedAngle, Vector3.up) * headGraphics.rotation;
         }
         
         private void DeleteDeadParts(DisposableList<PredictedObjectID> ids)

@@ -10,8 +10,16 @@ using UnityEngine.SceneManagement;
 
 namespace CreatureParts
 {
-    public class CreaturePart : StatelessPredictedIdentity
+    public class CreaturePart : PredictedIdentity<CreaturePart.PartState>
     {
+        
+        public struct PartState : IPredictedData<PartState>
+        {
+            public float timeSinceLastGrounded;
+            public float scrunchTimeLeft;
+            public void Dispose() {}
+        }
+        
         #region Public Variables
         [Header("Public Variables")]
         
@@ -56,9 +64,46 @@ namespace CreatureParts
             GroundObject = null;
         }
 
-        protected override void Simulate(float delta)
+        protected override void Simulate(ref PartState state, float delta)
         {
-            CheckGrounded(delta);
+            if (state.scrunchTimeLeft > 0f) state.scrunchTimeLeft -= delta;
+        }
+
+        public void RefreshGrounding(float delta)
+        {
+            ref var s = ref currentState;
+            Vector3 bottom = partCollider.bounds.center - new Vector3(0, partCollider.bounds.extents.y, 0);
+            Vector3 checkPos = bottom + Vector3.down * verticalDetectionOffset;
+            float radius = partCollider.bounds.extents.x * detectionRadiusScale;
+
+            int hitCount = Physics.OverlapSphereNonAlloc(checkPos, radius, results, ~0, QueryTriggerInteraction.Ignore);
+
+            IsGrounded = false;
+            GroundObject = null;
+            GroundNormal = Vector3.up;
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider hit = results[i];
+                if (hit.transform.root != transform.root)
+                {
+                    IsGrounded = true;
+                    GroundObject = hit.gameObject;
+                    GroundNormal = GetGroundNormal(hit, delta, ref s);
+                    break;
+                }
+            }
+        }
+
+        private Vector3 GetGroundNormal(Collider groundCollider, float delta, ref PartState s)
+        {
+            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, 2f) && hit.collider == groundCollider)
+            {
+                s.timeSinceLastGrounded = 0f;
+                return hit.normal;
+            }
+            s.timeSinceLastGrounded += delta;
+            return Vector3.up;
         }
         
         protected override void LateAwake()
@@ -167,46 +212,46 @@ namespace CreatureParts
         
         #region Private Methods
 
-        private void CheckGrounded(float delta)
-        {
-            Vector3 bottom = partCollider.bounds.center - new Vector3(0, partCollider.bounds.extents.y, 0);
-            Vector3 checkPos = bottom + Vector3.down * verticalDetectionOffset;
-            float radius = partCollider.bounds.extents.x * detectionRadiusScale;
-        
-            int hitCount = Physics.OverlapSphereNonAlloc(checkPos, radius, results, ~0, QueryTriggerInteraction.Ignore);
-
-            IsGrounded = false;
-            GroundObject = null;
-            GroundNormal = Vector3.up;
-        
-            for (int i = 0; i < hitCount; i++)
-            {
-                Collider hit = results[i];
-                if (hit.transform.root != transform.root)
-                {
-                    IsGrounded = true;
-                    GroundObject = hit.gameObject;
-                    GroundNormal = GetGroundNormal(hit, delta);
-                
-                    break;
-                }
-            }
-        }
-    
-        private Vector3 GetGroundNormal(Collider groundCollider, float delta)
-        {
-            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, 2f))
-            {
-                if (hit.collider == groundCollider)
-                {
-                    TimeSinceLastGrounded = 0f;
-                    return hit.normal;
-                }
-            }
-
-            TimeSinceLastGrounded += delta;
-            return Vector3.up;
-        }
+        // private void CheckGrounded(float delta)
+        // {
+        //     Vector3 bottom = partCollider.bounds.center - new Vector3(0, partCollider.bounds.extents.y, 0);
+        //     Vector3 checkPos = bottom + Vector3.down * verticalDetectionOffset;
+        //     float radius = partCollider.bounds.extents.x * detectionRadiusScale;
+        //
+        //     int hitCount = Physics.OverlapSphereNonAlloc(checkPos, radius, results, ~0, QueryTriggerInteraction.Ignore);
+        //
+        //     IsGrounded = false;
+        //     GroundObject = null;
+        //     GroundNormal = Vector3.up;
+        //
+        //     for (int i = 0; i < hitCount; i++)
+        //     {
+        //         Collider hit = results[i];
+        //         if (hit.transform.root != transform.root)
+        //         {
+        //             IsGrounded = true;
+        //             GroundObject = hit.gameObject;
+        //             GroundNormal = GetGroundNormal(hit, delta);
+        //         
+        //             break;
+        //         }
+        //     }
+        // }
+        //
+        // private Vector3 GetGroundNormal(Collider groundCollider, float delta)
+        // {
+        //     if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, 2f))
+        //     {
+        //         if (hit.collider == groundCollider)
+        //         {
+        //             TimeSinceLastGrounded = 0f;
+        //             return hit.normal;
+        //         }
+        //     }
+        //
+        //     TimeSinceLastGrounded += delta;
+        //     return Vector3.up;
+        // }
         
         private IEnumerator WaitForParentAndClaimOwnership()
         {

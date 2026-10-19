@@ -69,6 +69,10 @@ namespace Player
                 player.wormBodySegments[i].GetComponent<CreatureBodySegment>().nextSegment =
                     player.wormBodySegments[i + 1].GetComponent<CreatureBodySegment>();
             }
+            
+            player.segmentParts.Clear();
+            foreach (var s in player.wormBodySegments)
+                player.segmentParts.Add(s.GetComponent<CreaturePart>());
 
             GetComponent<WormPhysics>().AddCollidersToSegments();
             AddSegmentJoints();                                   // your original method

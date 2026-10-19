@@ -437,6 +437,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71f48cc10eb3ef146910f0f8c45e5eec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
   _repeatInputFactor: 0.8
   _extrapolateInput: 1
   PlayerName: Player1
@@ -725,6 +727,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.NetworkOwnershipToggle
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -734,6 +738,7 @@ MonoBehaviour:
   _visitiblityRules: {fileID: 0}
   _components: []
   _gameObjects: []
+  _applyInLateUpdate: 0
   _toActivate: []
   _toDeactivate: []
   _toEnable: []
@@ -752,6 +757,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerPartAttachement
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -797,6 +804,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player.WormConstructor
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -914,11 +923,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98dbb08343eac044895b9b52872bcb49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedTransform
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
   _graphics: {fileID: 8616667771191688465}
   _floatAccuracy: 1
   _interpolationSettings: {fileID: 11400000, guid: 4a8aa8e44e23cfd4a8d4387ef3f36173, type: 2}
   _unparentGraphics: 0
   _characterControllerPatch: 1
+  _softCorrection:
+    correctionRate: 8
+    snapPositionThreshold: 3
+    snapRotationThreshold: 75
 --- !u!114 &4573972930048522442
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -931,6 +946,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 939517533de889a4f948d4e2041fb798, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedRigidbody
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
+  _softVelocityCorrectionRate: 8
   _rigidbody: {fileID: 2071608441178476094}
   _floatAccuracy: 1
   _eventMask: 63
@@ -949,6 +967,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerNetwork
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -1082,6 +1102,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fb83f687f93b434bb8e0742fc933964, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureParts.Head
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
   visualHead: {fileID: 8284898165621438582}
   wormVisualHeadWithMaterial: {fileID: 3234903475071676460}
 --- !u!114 &1591429414908112517
@@ -1098,6 +1120,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameLoop.multiplayer.NetworkedPhysicsObject
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -1117,6 +1141,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf7a0d81aa13e7342bce9d5821ef4ef4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WormPart
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
 --- !u!114 &8075951811692346190
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1129,11 +1155,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98dbb08343eac044895b9b52872bcb49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedTransform
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
   _graphics: {fileID: 4665594383874748790}
   _floatAccuracy: 1
   _interpolationSettings: {fileID: 11400000, guid: 4a8aa8e44e23cfd4a8d4387ef3f36173, type: 2}
   _unparentGraphics: 0
   _characterControllerPatch: 0
+  _softCorrection:
+    correctionRate: 8
+    snapPositionThreshold: 3
+    snapRotationThreshold: 75
 --- !u!114 &3541438279976310803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1146,6 +1178,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 939517533de889a4f948d4e2041fb798, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedRigidbody
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
+  _softVelocityCorrectionRate: 8
   _rigidbody: {fileID: 2159904463975660318}
   _floatAccuracy: 1
   _eventMask: 63
