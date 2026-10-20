@@ -856,7 +856,9 @@ namespace Player
             deadIds.Add(id.Value);
             
             
-           copy.AddComponent<DeadBodyPart>();
+            if (copy.GetComponent<DeadBodyPart>() == null)
+                copy.AddComponent<DeadBodyPart>();
+            
            if (copy.GetComponent<CreatureBodySegment>() != null)
            {
                copy.GetComponent<CreatureBodySegment>().visualBodySegment.GetComponent<MeshRenderer>().material =

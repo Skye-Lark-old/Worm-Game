@@ -4,13 +4,11 @@ using UnityEngine;
 
 namespace CreatureParts
 {
-    public class DeadBodyPart : NetworkBehaviour
+    public class DeadBodyPart : MonoBehaviour
     {
         
         void Start()
         {
-            if (isServer) return;
-            
             gameObject.layer = LayerMask.NameToLayer("WormRagdoll");
             gameObject.tag = "Untagged";
             Destroy(gameObject.GetComponent<ConfigurableJoint>());
