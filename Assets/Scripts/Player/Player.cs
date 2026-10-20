@@ -41,8 +41,21 @@ namespace Player
         private float statMaxLag;
         private PredictedTransform headPT;
         private CreaturePart headPart;
-
+        
         protected override void Simulate(Input input, ref State state, float delta)
+        {
+            // restore the working copies from rolled-back state
+            CurrentState = state.wormState;
+            attackTimer = state.attackTimerLeft;
+
+            SimulateInternal(input, ref state, delta);
+
+            // save them back so a rollback restores them
+            state.wormState = CurrentState;
+            state.attackTimerLeft = attackTimer;
+        }
+
+        protected void SimulateInternal(Input input, ref State state, float delta)
         {
             ticksThisFrame++;
             
@@ -52,6 +65,7 @@ namespace Player
             if (!wormWired && wormConstructor.TryWireWorm(state.segmentIds))
             {
                 wormWired = true;
+                wormHeadBut.CacheParts();
                 playerSpawning.OnWormWired();
             }
             
@@ -149,6 +163,8 @@ namespace Player
             public float movementPhase;
             public bool isDead;
             public bool wormBuilt;
+            public WormState wormState;              
+            public float attackTimerLeft;
             public DisposableList<PredictedObjectID> segmentIds;
             public DisposableList<PredictedObjectID> deadPartIds;
             public float deadPartTimer;
@@ -273,6 +289,9 @@ namespace Player
         public bool IsWormJumping => CurrentState == WormState.Jumping;
         public bool IsWormAttacking => CurrentState == WormState.Attacking;
         public bool IsWormInAttackCooldown => CurrentState == WormState.AttackCooldown;
+        
+        public WormState wormState;
+        public float attackTimerLeft;
         
         public readonly List<CreaturePart> segmentParts = new();
         
