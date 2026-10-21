@@ -36,6 +36,7 @@ namespace Player
         
         private bool spawnSequenceStarted;
         private bool spawnSequenceDone;
+        private bool lobbySetupPending;
 
         public event Action OnWormRespawn;
 
@@ -387,16 +388,19 @@ namespace Player
             else if (scene == "GameLobbyScene")
                 SpawnPlayerInLobbyScene();
             
-            foreach (var seg in player.wormBodySegments)
-            foreach (var id in seg.GetComponents<PurrNet.Prediction.PredictedIdentity>())
-                Debug.Log($"[Own] {seg.name} {id.GetType().Name} owner={id.owner} isOwner={id.isOwner} kinematic={seg.GetComponent<Rigidbody>().isKinematic}");
-
-            foreach (var id in player.wormHead.GetComponents<PurrNet.Prediction.PredictedIdentity>())
-                Debug.Log($"[Own] head {id.GetType().Name} owner={id.owner} isOwner={id.isOwner} kinematic={player.wormHead.GetComponent<Rigidbody>().isKinematic}");
+            if (lobbySetupPending) SpawnPlayerInLobbyScene();
         }
 
         private void SpawnPlayerInLobbyScene()
         {
+            if (!player.SanitizeWorm())
+            {
+                lobbySetupPending = true;
+                Debug.Log("[Spawn] lobby setup deferred until the worm is wired");
+                return;
+            }
+            lobbySetupPending = false;
+            
             if (player.isOwner)
             {
                 Debug.Log($"spawning player in lobby: {player.owner}" );

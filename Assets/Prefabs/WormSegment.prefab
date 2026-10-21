@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 9124720428447693280}
   - component: {fileID: 657128712374151179}
   - component: {fileID: 9064682357215990852}
+  - component: {fileID: 152706399399077888}
   m_Layer: 0
   m_Name: WormSegment
   m_TagString: WormBodySegment
@@ -203,7 +204,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f37c1d747845f75488f350baea6781eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WormBodySegment
-  partPrefab: {fileID: 7684568371119374336}
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
   visualBodySegment: {fileID: 2362888918827852152}
   previousSegment: {fileID: 0}
   nextSegment: {fileID: 0}
@@ -221,6 +223,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameLoop.multiplayer.NetworkedPhysicsObject
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -240,11 +244,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98dbb08343eac044895b9b52872bcb49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedTransform
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
   _graphics: {fileID: 8861576847873918583}
   _floatAccuracy: 1
   _interpolationSettings: {fileID: 11400000, guid: 4a8aa8e44e23cfd4a8d4387ef3f36173, type: 2}
   _unparentGraphics: 0
   _characterControllerPatch: 1
+  _softCorrection:
+    correctionRate: 8
+    snapPositionThreshold: 3
+    snapRotationThreshold: 75
 --- !u!114 &9064682357215990852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,7 +267,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 939517533de889a4f948d4e2041fb798, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedRigidbody
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
+  _softVelocityCorrectionRate: 8
   _rigidbody: {fileID: -8523573033121363168}
   _floatAccuracy: 1
   _eventMask: 63
   _ignoreTriggerOnTrigger: 0
+--- !u!114 &152706399399077888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684568371119374336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62ace72b5a1e9f3c86c3c32739227042, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedParent
+  _predictionPolicySource: 0
+  _predictionPolicy: 0

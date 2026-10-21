@@ -41,6 +41,7 @@ namespace Player
         private float statMaxLag;
         private PredictedTransform headPT;
         private CreaturePart headPart;
+        private bool loggedFirstTick;
         
         protected override void Simulate(Input input, ref State state, float delta)
         {
@@ -58,6 +59,9 @@ namespace Player
         protected void SimulateInternal(Input input, ref State state, float delta)
         {
             ticksThisFrame++;
+            
+            if (!loggedFirstTick) { loggedFirstTick = true;
+                Debug.Log($"[Worm] first Simulate tick owner={owner} isOwner={isOwner} wormBuilt={state.wormBuilt}"); }
             
             if (!state.wormBuilt && wormConstructor.CreateWormSegments(state.segmentIds))
                 state.wormBuilt = true;                          
@@ -330,7 +334,7 @@ namespace Player
         public GameObject wormSegmentPrefab;
         public Transform wormHead;
         public Transform wormVisualHead;
-        public List<Transform> wormBodySegments = new( );
+        [System.NonSerialized] public List<Transform> wormBodySegments = new();
         public List<GameObject> attachedWormParts;
         public List<GameObject> wormPartsInInventory;
 
@@ -840,6 +844,19 @@ namespace Player
                     }
                 }
             }
+        }
+        
+        public bool SanitizeWorm()
+        {
+            if (!wormWired) return false;          // not built yet; nothing to clean
+            int removed = wormBodySegments.RemoveAll(s => s == null);
+            if (removed > 0)
+            {
+                Debug.LogWarning($"[Worm] removed {removed} dead segment refs, forcing rewire");
+                wormWired = false;
+                return false;
+            }
+            return wormBodySegments.Count == WormSegmentCount;
         }
         
         private GameObject DuplicatePartForDeath(GameObject original, GameObject sourcePrefab, DisposableList<PredictedObjectID> deadIds)

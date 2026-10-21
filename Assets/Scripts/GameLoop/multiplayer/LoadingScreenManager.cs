@@ -1,3 +1,4 @@
+using System.Collections;
 using PurrNet;
 using PurrNet.Packing;
 using UnityEngine;
@@ -6,18 +7,51 @@ public class LoadingScreenManager : PurrMonoBehaviour
 {
     public static LoadingScreenManager instance;
     private Canvas canvas;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private bool isDuplicate;
+    private bool registered;
+    private Coroutine waiter;
+    private void Awake()
     {
-        if (instance != null)
+        if (instance != null && instance != this)
         {
+            isDuplicate = true;
             Destroy(gameObject);
             return;
         }
-        DontDestroyOnLoad(this);
         instance = this;
+        DontDestroyOnLoad(gameObject);
         canvas = GetComponent<Canvas>();
         canvas.enabled = false;
+    }
+    
+    public override void OnEnable()
+    {
+        if (isDuplicate) return;
+
+        if (NetworkManager.main == null)
+        {
+            waiter = StartCoroutine(RegisterWhenReady());
+            return;
+        }
+        base.OnEnable();
+        registered = true;
+    }
+
+    private IEnumerator RegisterWhenReady()
+    {
+        while (NetworkManager.main == null) yield return null;
+        waiter = null;
+        base.OnEnable();
+        registered = true;
+    }
+
+    public override void OnDisable()
+    {
+        if (waiter != null) { StopCoroutine(waiter); waiter = null; }
+        if (!registered) return;
+        registered = false;
+        if (NetworkManager.main == null) return;   // manager already gone, nothing to unregister
+        base.OnDisable();
     }
     
 

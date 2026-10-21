@@ -20,6 +20,7 @@ namespace Player
         
         public bool CreateWormSegments(DisposableList<PredictedObjectID> ids)
         {
+            Debug.Log($"[Worm] creating {player.WormSegmentCount} segments for {player.owner}");
             if (player == null) player = GetComponent<Player>();
 
             for (int i = 0; i < player.WormSegmentCount; i++)
@@ -39,6 +40,7 @@ namespace Player
         // Runs once per peer; returns false until every segment object can be resolved
         public bool TryWireWorm(DisposableList<PredictedObjectID> ids)
         {
+            if (Time.frameCount % 120 == 0) Debug.Log($"[Worm] waiting to wire: ids={ids.Count}/{player.WormSegmentCount}");
             if (player == null) player = GetComponent<Player>();
             if (ids.Count < player.WormSegmentCount) return false;
 
@@ -81,6 +83,7 @@ namespace Player
             // if (player.isOwner) wp.ToggleWormKinematics(true);
             // else { wp.ToggleWormCollisions(true); wp.ToggleWormKinematics(false); }
 
+            Debug.Log($"[Worm] wired {segments.Count} segments for {player.owner}");
             return true;
         }
 
