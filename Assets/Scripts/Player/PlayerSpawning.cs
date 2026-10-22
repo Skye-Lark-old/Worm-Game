@@ -170,7 +170,7 @@ namespace Player
         
         public void OnWormRewired()
         {
-            bool kinematic = player.isOwner && !GameSceneList.IsSceneAGameScene(SceneManager.GetActiveScene().name);
+            bool kinematic = player.isOwner && SceneManager.GetActiveScene().name == "CreatureBuilderScene";
             var wp = GetComponent<WormPhysics>();
             wp.ToggleWormCollisions(true);
             wp.ToggleWormKinematics(kinematic);
@@ -376,19 +376,23 @@ namespace Player
         
         public void OnWormWired()
         {
+            Debug.Log($"[Spawn] OnWormWired scene={SceneManager.GetActiveScene().name} owner={player.owner}");
+            string scene = SceneManager.GetActiveScene().name;
+
+            if (scene == "GameLobbyScene")
+            {
+                SpawnPlayerInLobbyScene();     // sets its own kinematics
+                return;
+            }
+
+            // hold the owner still until the spawn sequence positions it
             if (player.owner == player.predictionManager.localPlayer)
                 GetComponent<WormPhysics>().ToggleWormKinematics(true);
-
-            string scene = SceneManager.GetActiveScene().name;
 
             if (GameSceneList.IsSceneAGameScene(scene))
                 SetWormInGameScene();
             else if (scene == "CreatureBuilderScene" && gameObject.activeSelf)
                 StartCoroutine(SetWormInCreatureBuilderScene());
-            else if (scene == "GameLobbyScene")
-                SpawnPlayerInLobbyScene();
-            
-            if (lobbySetupPending) SpawnPlayerInLobbyScene();
         }
 
         private void SpawnPlayerInLobbyScene()
@@ -403,15 +407,18 @@ namespace Player
             
             if (player.isOwner)
             {
-                Debug.Log($"spawning player in lobby: {player.owner}" );
+                Debug.Log($"spawning player in lobby: {player.owner}");
                 player.IsInvincible = true;
                 hasBeenVisuallyEnabledInGameScene = false;
-            
-                GetComponent<WormPhysics>().ToggleWormKinematics(true);
+
+                GetComponent<WormPhysics>().ToggleWormKinematics(false);   // was true: the owner simulates now
+                Debug.Log($"[Spawn] lobby setup ok={player.SanitizeWorm()}");
             }
+            
             else //hard coded as all players are non kinematic in lobby
             {
                 GetComponent<WormPhysics>().ToggleWormKinematics(false);
+                Debug.Log($"[Spawn] lobby setup ok={player.SanitizeWorm()}");
             }
             
         }

@@ -28,6 +28,7 @@ public class Network : MonoBehaviour
     bool Init = false;
 
     private GameObject networkObject;
+    private GameObject predictionObject;
 
     private void OnDestroy()
     {
@@ -59,6 +60,7 @@ public class Network : MonoBehaviour
             instance = this;
             Init = true;
             networkObject = Instantiate(Resources.Load<GameObject>("Multiplayer/Network-Config"));
+            //predictionObject = Instantiate(Resources.Load<GameObject>("Multiplayer/Prediction-Config"));
             
             pinger = gameObject.GetOrAddComponent<SimplePing>();
 

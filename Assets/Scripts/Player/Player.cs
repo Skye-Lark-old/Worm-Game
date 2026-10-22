@@ -79,11 +79,11 @@ namespace Player
                 if (state.deadPartTimer <= 0f)
                     DeleteDeadParts(state.deadPartIds);
             }
-
+            
+            RefreshAllGrounding(delta);
             if (!isPlayerActive) return;
             
             //if (Time.frameCount % 60 == 0) Debug.Log($"tick delta {delta:F4} vs fixed {Time.fixedDeltaTime:F4}");
-            RefreshAllGrounding(delta);
             SetWormGrounding();
             inSimulate = true;
             
@@ -229,7 +229,7 @@ namespace Player
                 
                 if (statTimer >= 2f)
                 {
-                    Debug.Log($"[Perf] fps={statFrames / statTimer:F0} ticks/s={statTicks / statTimer:F0} rollbacks/s={rollbackCount / statTimer:F0} maxTicks={statMaxTicks} maxHeadGraphicsLag={statMaxLag:F2}");
+                    // Debug.Log($"[Perf] fps={statFrames / statTimer:F0} ticks/s={statTicks / statTimer:F0} rollbacks/s={rollbackCount / statTimer:F0} maxTicks={statMaxTicks} maxHeadGraphicsLag={statMaxLag:F2}");
                     rollbackCount = 0;
                     
                     statTimer = 0; statFrames = 0; statTicks = 0; statMaxTicks = 0;

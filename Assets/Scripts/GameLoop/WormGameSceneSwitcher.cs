@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Player;
 using PurrNet;
+using PurrNet.Modules;
 using PurrNet.Packing;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -44,21 +45,21 @@ namespace GameLoop
         public IEnumerator LoadGameLobbyScene(float delay = -1)
         {
             if (delay >= 0) yield return new WaitForSeconds(delay);
-            SceneManager.LoadScene("GameLobbyScene");
+            LoadNetworkedScene("GameLobbyScene");
         }
         public void LoadCreatureBuilderScene()
         {
-            SceneManager.LoadScene("CreatureBuilderScene");
+            LoadNetworkedScene("CreatureBuilderScene");
         }
     
         public void LoadGameScene()
         {
-            SceneManager.LoadScene(GameSceneList.GetRandomGameScene());
+           LoadNetworkedScene(GameSceneList.GetRandomGameScene());
         }
     
         public void LoadLeaderboardScene()
         {
-            SceneManager.LoadScene("LeaderboardScene");
+            LoadNetworkedScene("LeaderboardScene");
             
             foreach (Player.Player player in GameLoop.Instance.players)
             {
@@ -68,12 +69,24 @@ namespace GameLoop
     
         public void LoadGameEndScene()
         {
-            SceneManager.LoadScene("GameEndScene");
+            LoadNetworkedScene("GameEndScene");
             
             foreach (Player.Player player in GameLoop.Instance.players)
             {
                 player.DeactivatePlayer();
             }
+        }
+        
+        private void LoadNetworkedScene(string sceneName)
+        {
+            var manager = Network.instance != null ? Network.instance.manager : null;
+            if (manager == null || !manager.isServer) return;   // only the server loads; clients follow
+
+            manager.sceneModule.LoadSceneAsync(sceneName, new PurrSceneSettings
+            {
+                mode = LoadSceneMode.Single,
+                isPublic = true
+            });
         }
 
         public void QuitGame()

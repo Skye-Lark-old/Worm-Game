@@ -119,6 +119,92 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &7256263
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7256266}
+  - component: {fileID: 7256265}
+  - component: {fileID: 7256264}
+  m_Layer: 0
+  m_Name: PurrdictionManager (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &7256264
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7256263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a1392aa1bc3d3b4a9ef31b6e6d8d4b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedPlayerSpawner
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
+  _desyncPolicy: 0
+  _playerPrefab: {fileID: 3857149077806430327, guid: 84a4084e46c23274facf0350ed1ad874, type: 3}
+  _destroyOnDisconnect: 0
+  spawnPoints:
+  - {fileID: 0}
+  _waitForSpawnCall: 0
+--- !u!114 &7256265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7256263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0112282cee605384cb1835dbd2b236de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictionManager
+  _isSetup: 0
+  _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
+  _componentIndex: -2147483648
+  _shouldBePooled: 0
+  _parent: {fileID: 0}
+  _invertedPathToNearestParent: 
+  _directChildren: []
+  _networkRules: {fileID: 0}
+  _visitiblityRules: {fileID: 0}
+  _physicsProvider: 1
+  _updateViewMode: 1
+  _builtInSystems: 63
+  _predictedPrefabs: {fileID: 11400000, guid: cc71f75c71d684047b681a00ebd3744b, type: 2}
+  _extrapolateMissingInputs: 1
+  _serverUpdateRate: 0
+  _maxLagCompensationSeconds: 0.15
+  _forwardViewOffsets: 1
+  _desyncPolicy: 0
+  _desyncCheckIntervalSeconds: 0.25
+--- !u!4 &7256266
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7256263}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0482, y: 1.61532, z: 2.24623}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &62629972
 GameObject:
   m_ObjectHideFlags: 0
@@ -5620,7 +5706,6 @@ GameObject:
   - component: {fileID: 1950786157}
   - component: {fileID: 1950786156}
   - component: {fileID: 1950786155}
-  - component: {fileID: 1950786158}
   m_Layer: 0
   m_Name: PurrNet
   m_TagString: Untagged
@@ -5696,21 +5781,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1950786158
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1950786154}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ced7bf28cdbee104e8cdc34ab761b039, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.PlayerSpawner
-  _playerPrefab: {fileID: 3857149077806430327, guid: 84a4084e46c23274facf0350ed1ad874, type: 3}
-  _ignoreNetworkRules: 0
-  spawnPoints: []
 --- !u!1 &1979447291
 GameObject:
   m_ObjectHideFlags: 0
@@ -6211,3 +6281,4 @@ SceneRoots:
   - {fileID: 371488978}
   - {fileID: 404798629}
   - {fileID: 1535898808}
+  - {fileID: 7256266}

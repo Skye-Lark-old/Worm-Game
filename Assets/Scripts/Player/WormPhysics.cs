@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using CreatureParts;
 using PurrNet;
+using PurrNet.Prediction;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -82,7 +83,7 @@ namespace Player
         public void MakeWormUnkinematic()
         {
             Debug.Log($"MakeWormUnkinematic on {player.PlayerName} | segments: {player.wormBodySegments.Count}", this);
-            Rigidbody headRb = player.wormHead.GetComponent<Rigidbody>();
+            PredictedRigidbody headRb = player.wormHead.GetComponent<PredictedRigidbody>();
             if (headRb != null)
             {
                 headRb.useGravity = true;
@@ -93,7 +94,7 @@ namespace Player
             
             foreach (Transform segment in player.wormBodySegments)
             {
-                Rigidbody segmentRb = segment.GetComponent<Rigidbody>();
+                PredictedRigidbody segmentRb = segment.GetComponent<PredictedRigidbody>();
                 segmentRb.useGravity = true;
                 segmentRb.isKinematic = false;
                 segmentRb.linearVelocity = Vector3.zero;
@@ -105,7 +106,7 @@ namespace Player
 
         public void SetSegmentPhysics(Transform segment, bool isKinematic, bool useGravity)
         {
-            Rigidbody rb = segment.GetComponent<Rigidbody>();
+            PredictedRigidbody rb = segment.GetComponent<PredictedRigidbody>();
             if (rb == null) return;
             
             rb.isKinematic = isKinematic;
