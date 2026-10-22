@@ -16,7 +16,7 @@ namespace Player
         public float TickDelta;
         public float movementPhase;
 
-        private float Dt => TickDelta > 0f ? TickDelta : Dt;
+        private float Dt => TickDelta > 0f ? TickDelta : Time.fixedDeltaTime;
         
         #region Private Variables
         
