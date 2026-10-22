@@ -42,6 +42,11 @@ namespace Player
         private PredictedTransform headPT;
         private CreaturePart headPart;
         private bool loggedFirstTick;
+        private bool wantsLobbyMove;
+        private Vector3 lobbyTarget;
+        
+        public void SetLobbyMoveTarget(Vector3 target) { wantsLobbyMove = true; lobbyTarget = target; }
+        public void ClearLobbyMoveTarget() => wantsLobbyMove = false;
         
         protected override void Simulate(Input input, ref State state, float delta)
         {
@@ -81,6 +86,18 @@ namespace Player
             }
             
             RefreshAllGrounding(delta);
+            
+            if (input.lobbyMove && wormWired)
+            {
+                wormForwardMovement.TickDelta = delta;
+                wormForwardMovement.movementPhase = state.movementPhase;
+                inSimulate = true;
+                MoveInLobby(input.lobbyTarget);
+                inSimulate = false;
+                state.movementPhase = wormForwardMovement.movementPhase;
+                return;
+            }
+            
             if (!isPlayerActive) return;
             
             //if (Time.frameCount % 60 == 0) Debug.Log($"tick delta {delta:F4} vs fixed {Time.fixedDeltaTime:F4}");
@@ -192,6 +209,8 @@ namespace Player
             public bool die, respawn;
             public Vector3 respawnPosition;
             public Quaternion respawnRotation;
+            public bool lobbyMove;
+            public Vector3 lobbyTarget;
             public void Dispose() {}
         }
         
@@ -200,6 +219,8 @@ namespace Player
             input.moveForward = wantsMove;
             input.jump   |= wantsJump;    wantsJump = false;
             input.attack |= wantsAttack;  wantsAttack = false;
+            input.lobbyMove = wantsLobbyMove;
+            input.lobbyTarget = lobbyTarget;
             
             if (thirdPersonCamera != null) input.lookForward = thirdPersonCamera.transform.forward;
             

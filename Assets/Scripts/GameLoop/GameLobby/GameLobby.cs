@@ -101,7 +101,7 @@ namespace GameLoop.GameLobby
 
         private void FixedUpdate()
         {
-            if (LocalPlayer.Instance != null) LocalPlayer.Instance.MoveInLobby(mouseWorldPosition);
+            if (LocalPlayer.Instance != null) LocalPlayer.Instance.SetLobbyMoveTarget(mouseWorldPosition);
         }
 
         private void OnLocalPlayerReady()
@@ -130,6 +130,11 @@ namespace GameLoop.GameLobby
             PlayerRegister.OnPlayerRegisterChanged.RemoveListener(OnPlayerRegisterChanged);
             Player.LocalPlayer.OnLocalPlayerReady -= OnLocalPlayerReady; // safety cleanup
             PlayerRegister.OnPlayerRegistered.RemoveListener(OnPlayerRegistered);
+        }
+        
+        private void OnDisable()
+        {
+            if (LocalPlayer.Instance != null) LocalPlayer.Instance.ClearLobbyMoveTarget();
         }
 
         #endregion
