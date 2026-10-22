@@ -58,7 +58,7 @@ MonoBehaviour:
   _networkRules: {fileID: 11400000, guid: 57ad4cc976c21074181652c4f7179d44, type: 2}
   _visibilityRules: {fileID: 11400000, guid: 8f014a5bd8dc68646a2a3c0b18c5bbd8, type: 2}
   _authenticator: {fileID: 0}
-  _tickRate: 20
+  _tickRate: 50
   _maxTicksPerFrame: 5
   _mtuExceededBehaviour: 2
   _patchLingeringProcessBug: 0
