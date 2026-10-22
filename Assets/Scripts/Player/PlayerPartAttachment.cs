@@ -135,9 +135,9 @@ namespace Player
         }
 
         [ServerRpc]
-        public void ClearAttachedParts(Player player)
+        public void ClearAttachedParts()
         {
-            ClearAttachedPartsObserverSide(player);
+            ClearAttachedPartsObserverSide();
         }
         
         public void AddAlreadyAttachedParts()
@@ -152,18 +152,15 @@ namespace Player
                 AddAlreadyAttachedPart(part);
             }
             
-            ClearAttachedParts(GetComponent<Player>());
+            ClearAttachedParts();
         }
         
         #region Private Methods
         
         [ObserversRpc]
-        private void ClearAttachedPartsObserverSide(Player player)
+        private void ClearAttachedPartsObserverSide()
         {
-            if (player.gameObject == gameObject)
-            {
-                player.attachedWormParts.Clear();
-            }
+            GetComponent<Player>().attachedWormParts.Clear();
         }
         
         private void AddPartToWorm(GameObject creaturePart)
