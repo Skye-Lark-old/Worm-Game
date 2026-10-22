@@ -128,6 +128,7 @@ namespace Player
         private void SetWormInGameSceneAsOwner()
         {
             Debug.Log($"Setting worm {player.PlayerName} in game scene as owner");
+            spawnSequenceDone = false;
             spawnSequenceStarted = true;
             StartCoroutine(SpawnAtSpawnPoint());
             player.ActivatePlayer();
@@ -571,6 +572,7 @@ namespace Player
             GetComponent<WormPhysics>().ToggleWormKinematics(false);
             player.IsInvincible = false;
             spawnSequenceDone = true;
+            spawnPointSet = false;
         }
 
         // [ServerRpc]

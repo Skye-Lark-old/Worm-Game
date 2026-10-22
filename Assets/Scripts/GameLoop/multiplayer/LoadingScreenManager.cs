@@ -10,6 +10,7 @@ public class LoadingScreenManager : PurrMonoBehaviour
     private bool isDuplicate;
     private bool registered;
     private Coroutine waiter;
+    private bool lastEnabled;
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -22,6 +23,13 @@ public class LoadingScreenManager : PurrMonoBehaviour
         DontDestroyOnLoad(gameObject);
         canvas = GetComponent<Canvas>();
         canvas.enabled = false;
+    }
+    
+    private void LateUpdate()
+    {
+        if (canvas == null || canvas.enabled == lastEnabled) return;
+        lastEnabled = canvas.enabled;
+        Debug.Log($"[Loading] canvas.enabled -> {lastEnabled} (id {GetInstanceID()}, scene '{gameObject.scene.name}')", this);
     }
     
     public override void OnEnable()
@@ -57,11 +65,13 @@ public class LoadingScreenManager : PurrMonoBehaviour
 
     void OnLoadingScreenRequest(PlayerID player, LoadingScreenRequest request, bool isServer)
     {
+        Debug.Log($"[Loading] request display={request.display} asServer={isServer}");
         canvas.enabled = request.display;
     }
     
     public static void LoadingScreenForSelf(bool display)
     {
+        Debug.Log($"[Loading] ForSelf({display})\n{System.Environment.StackTrace}");
         instance.canvas.enabled = display;
     }
     

@@ -39,13 +39,16 @@ namespace WormLeague
     
         void Start()
         {
+            Debug.Log("worm league starting");
+            Debug.Log("[Worm League] loading scene manager: " + LoadingScreenManager.instance);
             //StartCoroutine(Ddebug());
             AssignPlayerTeams();
             AssignPlayerSpawnPoints();
-
+            
             if (LoadingScreenManager.instance != null)
             {
                 LoadingScreenManager.LoadingScreenForSelf(false);
+                if (isServer) LoadingScreenManager.LoadingScreenForAll(false);
             }
         }
 
