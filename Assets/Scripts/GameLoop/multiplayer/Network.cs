@@ -60,7 +60,7 @@ public class Network : MonoBehaviour
             instance = this;
             Init = true;
             networkObject = Instantiate(Resources.Load<GameObject>("Multiplayer/Network-Config"));
-            //predictionObject = Instantiate(Resources.Load<GameObject>("Multiplayer/Prediction-Config"));
+            predictionObject = Instantiate(Resources.Load<GameObject>("Multiplayer/Prediction-Config"));
             
             pinger = gameObject.GetOrAddComponent<SimplePing>();
 
@@ -88,6 +88,7 @@ public class Network : MonoBehaviour
             }
 
             DontDestroyOnLoad(networkObject);
+            DontDestroyOnLoad(predictionObject);
             DontDestroyOnLoad(gameObject);
 
             manager.onClientConnectionState += OnNetworkChangeScene;

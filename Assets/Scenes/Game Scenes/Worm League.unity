@@ -840,6 +840,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.NetworkTransform
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -857,6 +859,7 @@ MonoBehaviour:
   _characterControllerPatch: 0
   _ownerAuth: 1
   _interpolationTiming: 0
+  _adaptiveSynchronization: 2
 --- !u!1 &106325876
 GameObject:
   m_ObjectHideFlags: 0
@@ -1165,9 +1168,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71f48cc10eb3ef146910f0f8c45e5eec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
   _repeatInputFactor: 0.8
   _extrapolateInput: 1
   PlayerName: Player1
+  wormState: 0
+  attackTimerLeft: 0
   canDie: 0
   headPrefab: {fileID: 0}
   playerScore: 1
@@ -1178,10 +1185,6 @@ MonoBehaviour:
   wormSegmentPrefab: {fileID: 0}
   wormHead: {fileID: 0}
   wormVisualHead: {fileID: 0}
-  wormBodySegments:
-    _ownerAuth: 0
-    _sendIntervalInSeconds: 0
-    _list: []
   attachedWormParts: []
   wormPartsInInventory: []
   playerSpawning: {fileID: 0}
@@ -1830,7 +1833,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &422120761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1849,7 +1852,14 @@ MonoBehaviour:
   _maxConnections: 100
   _address: 127.0.0.1
   _timeoutInSeconds: 5
-  _pollEventsInUpdate: 0
+  _useNativeSockets: 1
+  _networkSimulation:
+    includeInBuild: 0
+    simulateLatency: 0
+    minLatency: 30
+    maxLatency: 100
+    simulatePacketLoss: 0
+    packetLossChance: 10
 --- !u!114 &422120762
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1874,6 +1884,8 @@ MonoBehaviour:
   _visibilityRules: {fileID: 11400000, guid: 8f014a5bd8dc68646a2a3c0b18c5bbd8, type: 2}
   _authenticator: {fileID: 0}
   _tickRate: 50
+  _maxTicksPerFrame: 5
+  _mtuExceededBehaviour: 2
   _patchLingeringProcessBug: 0
 --- !u!4 &422120763
 Transform:
@@ -2773,7 +2785,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &780114545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2788,6 +2800,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictionManager
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -2799,11 +2813,12 @@ MonoBehaviour:
   _updateViewMode: 1
   _builtInSystems: 63
   _predictedPrefabs: {fileID: 11400000, guid: cc71f75c71d684047b681a00ebd3744b, type: 2}
-  _inputQueueSettings:
-    extrapolateForMissing: 1
-    minInputs: 1
-    maxInputs: 2
-  _validateDeterministicData: 0
+  _extrapolateMissingInputs: 1
+  _serverUpdateRate: 0
+  _maxLagCompensationSeconds: 0.15
+  _forwardViewOffsets: 1
+  _desyncPolicy: 0
+  _desyncCheckIntervalSeconds: 0.25
 --- !u!4 &780114546
 Transform:
   m_ObjectHideFlags: 0
@@ -2831,10 +2846,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a1392aa1bc3d3b4a9ef31b6e6d8d4b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedPlayerSpawner
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
+  _desyncPolicy: 0
   _playerPrefab: {fileID: 3857149077806430327, guid: 84a4084e46c23274facf0350ed1ad874, type: 3}
   _destroyOnDisconnect: 0
   spawnPoints:
   - {fileID: 1136558889}
+  _waitForSpawnCall: 0
 --- !u!1 &783578316
 GameObject:
   m_ObjectHideFlags: 0
@@ -3396,6 +3415,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WormLeague.Goal
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -6277,6 +6298,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WormLeague.Goal
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -7013,6 +7036,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WormLeague
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -7092,6 +7117,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WormLeagueParticles
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -7517,6 +7544,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.NetworkTransform
   _isSetup: 0
   _prefabId: -2147483648
+  _hasPrefabScope: 0
+  _prefabScope: 0
   _componentIndex: -2147483648
   _shouldBePooled: 0
   _parent: {fileID: 0}
@@ -7534,6 +7563,7 @@ MonoBehaviour:
   _characterControllerPatch: 0
   _ownerAuth: 1
   _interpolationTiming: 0
+  _adaptiveSynchronization: 2
 --- !u!1 &2011025983
 GameObject:
   m_ObjectHideFlags: 0
