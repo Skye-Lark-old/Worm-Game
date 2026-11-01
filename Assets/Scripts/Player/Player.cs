@@ -92,11 +92,16 @@ namespace Player
                 wormForwardMovement.TickDelta = delta;
                 wormForwardMovement.movementPhase = state.movementPhase;
                 inSimulate = true;
+
+                SetWormGrounding();                                          // difference 2
+                if (CurrentState == WormState.Idle) StartWormMoving();       // difference 1 (needs inSimulate = true)
+
                 MoveInLobby(input.lobbyTarget);
                 inSimulate = false;
                 state.movementPhase = wormForwardMovement.movementPhase;
                 return;
             }
+            if (CurrentState == WormState.Moving && !input.moveForward) { inSimulate = true; StopWormMoving(); inSimulate = false; }
             
             if (!isPlayerActive) return;
             
@@ -169,6 +174,17 @@ namespace Player
 
             state.movementPhase = wormForwardMovement.movementPhase;
             inSimulate = false;
+        }
+        
+        [ContextMenu("Dump Scene Physics")]
+        public void DumpScenePhysics()
+        {
+            Debug.Log($"managers={FindObjectsByType<PredictionManager>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length} " +
+                      $"simMode={Physics.simulationMode} gravity={Physics.gravity} fixedDelta={Time.fixedDeltaTime} timeScale={Time.timeScale} " +
+                      $"solver={Physics.defaultSolverIterations}/{Physics.defaultSolverVelocityIterations} autoSync={Physics.autoSyncTransforms}");
+            foreach (Collider c in Physics.OverlapSphere(wormHead.position, 3f))
+                if (c.transform.root != transform.root)
+                    Debug.Log($"[Near head] {c.name} layer={LayerMask.LayerToName(c.gameObject.layer)} trigger={c.isTrigger} rb={(c.attachedRigidbody ? c.attachedRigidbody.name : "none")}", c);
         }
         
         private void RefreshAllGrounding(float delta)
@@ -518,13 +534,8 @@ namespace Player
 
         public void MoveInLobby(Vector3 movePosition)
         {
-            //if (!GetComponent<PlayerSpawning>().isSetup) return;
-            
             wormForwardMovement.MoveHeadTowardsPosition(movePosition);
             wormForwardMovement.MoveWormBody();
-            wormForwardMovement.MoveHeadTowardsPosition(movePosition);
-            wormForwardMovement.MoveWormBody();
-            
         }
 
         public void DamagePlayer(Collision other, GameObject hitGameObject)

@@ -398,6 +398,7 @@ namespace Player
 
         private void SpawnPlayerInLobbyScene()
         {
+            player.ActivatePlayer();
             if (!player.SanitizeWorm())
             {
                 lobbySetupPending = true;
