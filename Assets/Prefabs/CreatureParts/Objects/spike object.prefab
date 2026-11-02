@@ -396,8 +396,8 @@ GameObject:
   - component: {fileID: 2305112578031075123}
   - component: {fileID: 1103974819986429539}
   - component: {fileID: 2193398745695750739}
-  - component: {fileID: 2337356594763814992}
-  - component: {fileID: 2722753630580476875}
+  - component: {fileID: 3528193218924414230}
+  - component: {fileID: 6474036007690575566}
   m_Layer: 0
   m_Name: spike object
   m_TagString: CreaturePart
@@ -421,6 +421,7 @@ Transform:
   - {fileID: 5642952207762950243}
   - {fileID: 3946637793708195829}
   - {fileID: 8255528771522868393}
+  - {fileID: 4078636823690081899}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 180, y: 180, z: 0}
 --- !u!114 &3338711355505536695
@@ -466,15 +467,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 113b9b2e5406b6b4bb11c0e06c6b41de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureParts.SpikePart
-  _isSetup: 0
-  _prefabId: -2147483648
-  _componentIndex: -2147483648
-  _shouldBePooled: 0
-  _parent: {fileID: 0}
-  _invertedPathToNearestParent: 
-  _directChildren: []
-  _networkRules: {fileID: 0}
-  _visitiblityRules: {fileID: 0}
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
   defaultConnectedAnchor: {x: 0, y: 0, z: 0}
   attachmentPosition: {x: 0, y: 0, z: 0}
   attachmentRotation: {x: 0, y: 0, z: 0, w: 0}
@@ -530,7 +524,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &2337356594763814992
+--- !u!114 &3528193218924414230
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -539,39 +533,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 4684220183131317328}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d497b70c6fb6adc46b663609bee66dfd, type: 3}
+  m_Script: {fileID: 11500000, guid: 98dbb08343eac044895b9b52872bcb49, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.NetworkRigidbody
-  _isSetup: 0
-  _prefabId: -2147483648
-  _componentIndex: -2147483648
-  _shouldBePooled: 0
-  _parent: {fileID: 0}
-  _invertedPathToNearestParent: 
-  _directChildren: []
-  _networkRules: {fileID: 0}
-  _visitiblityRules: {fileID: 0}
-  _ownerAuth: 1
-  _acceptableError: 0.05
-  _hardCorrectionThreshold: 2
-  _maxCorrectionTime: -1
-  _springConstant: 80
-  _dampingConstant: 5
-  _rotationSpringMultiplier: 0.3
-  _minRotationCorrectionAngle: 1
-  _uncertaintySpringDampening: 0.5
-  _accelerationDecay: 0.85
-  _hardCorrectionAccelerationScale: 0.1
-  _maxHardCorrectionMultiplier: 5
-  _lowSpeedThreshold: 1.5
-  _lowSpeedSpringMultiplier: 0.1
-  _extrapolateBasedOnPing: 0
-  _positionChangeThreshold: 0.001
-  _rotationChangeThreshold: 0.001
-  _velocityStopThreshold: 0.001
-  _debugGizmos: 0
-  _debugTextOffset: 2
---- !u!114 &2722753630580476875
+  m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedTransform
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
+  _graphics: {fileID: 4078636823690081899}
+  _floatAccuracy: 1
+  _interpolationSettings: {fileID: 11400000, guid: 4a8aa8e44e23cfd4a8d4387ef3f36173, type: 2}
+  _unparentGraphics: 0
+  _characterControllerPatch: 1
+  _softCorrection:
+    correctionRate: 8
+    snapPositionThreshold: 3
+    snapRotationThreshold: 75
+--- !u!114 &6474036007690575566
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -580,28 +556,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 4684220183131317328}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 817fe5016bd0a2a49a95b6eb338bb132, type: 3}
+  m_Script: {fileID: 11500000, guid: 939517533de889a4f948d4e2041fb798, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.NetworkTransform
-  _isSetup: 0
-  _prefabId: -2147483648
-  _componentIndex: -2147483648
-  _shouldBePooled: 0
-  _parent: {fileID: 0}
-  _invertedPathToNearestParent: 
-  _directChildren: []
-  _networkRules: {fileID: 0}
-  _visitiblityRules: {fileID: 0}
-  _syncPosition: 1
-  _syncRotation: 1
-  _syncScale: 1
-  _syncParent: 1
-  _interpolateSettings: 7
-  _minBufferSize: 1
-  _maxBufferSize: 2
-  _characterControllerPatch: 0
-  _ownerAuth: 1
-  _interpolationTiming: 0
+  m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedRigidbody
+  _predictionPolicySource: 0
+  _predictionPolicy: 0
+  _softVelocityCorrectionRate: 8
+  _rigidbody: {fileID: 2193398745695750739}
+  _floatAccuracy: 1
+  _eventMask: 27
+  _ignoreTriggerOnTrigger: 0
 --- !u!1 &5791657943261490163
 GameObject:
   m_ObjectHideFlags: 0
@@ -829,6 +793,88 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1001 &4544277063407931776
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 6664025493103434586}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_Name
+      value: Spike -  visual
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_TagString
+      value: CreaturePart
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+--- !u!4 &4078636823690081899 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+  m_PrefabInstance: {fileID: 4544277063407931776}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8438407393861063490
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -892,6 +938,10 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 25c91bd3492e0fd42854f84c00fed07c, type: 3}
       propertyPath: m_Name

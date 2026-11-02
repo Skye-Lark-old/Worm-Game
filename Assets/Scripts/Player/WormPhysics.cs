@@ -200,9 +200,12 @@ namespace Player
             IgnoreCollisionsInDirection(partColliders, nearestWormSegment, true, numSegments);
             IgnoreCollisionsInDirection(partColliders, nearestWormSegment, false, numSegments);
             
-            foreach (var attachedWormPart in LocalPlayer.Instance.attachedWormParts)
+            foreach (var attachedWormPart in player.attachedWormParts)
             {
-                Physics.IgnoreCollision(part.GetComponent<Collider>(), attachedWormPart.GetComponent<Collider>(), true);
+                if (attachedWormPart == null || attachedWormPart == part) continue;
+                var a = part.GetComponent<Collider>();
+                var b = attachedWormPart.GetComponent<Collider>();
+                if (a != null && b != null) Physics.IgnoreCollision(a, b, true);
             }
         }
 

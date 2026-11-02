@@ -10,13 +10,27 @@ namespace Player
 {
     public class PlayerPartAttachment : NetworkBehaviour
     {
+        // parts that have been created on the server but may not exist on this peer yet
+        private struct PendingPart
+        {
+            public PredictedObjectID id;
+            public int partId;
+            public int segmentIndex;      // -1 = head
+            public Vector3 localPos;
+            public Quaternion localRot;
+            public float enqueuedAt;
+        }
+        private readonly Queue<PendingPart> pending = new Queue<PendingPart>();
+
+        #region Attaching
+
         public void AttachCreatureParts(List<GameObject> parts, List<PartPair> partPairs)
         {
             foreach (GameObject part in parts)
             {
                 Debug.Log("attaching creature part " + part.name);
                 PartDragging partDragging = part.GetComponent<PartDragging>();
-        
+
                 if (partDragging != null && partDragging.isClamped)
                 {
                     AddPartToWorm(part);
@@ -28,110 +42,193 @@ namespace Player
                     ReturnPartToPlayerInventory(part, partPairs);
                 }
             }
-    
+
             parts.Clear();
         }
-        
-        [ServerRpc]
-        public void AddAttachedPartServerSide(GameObject prefab, Vector3 position, Quaternion rotation, GameObject attachedSegment, float partMass, GameObject player, Vector3 localPos, Quaternion localRot)
+
+        private void AddPartToWorm(GameObject creaturePart)
         {
-            GameObject networkedPart = Instantiate(prefab, position, rotation, player.transform);
-            networkedPart.GetComponent<AttachablePart>().attachedSegmentRigidbody = attachedSegment.GetComponent<Rigidbody>();
-            networkedPart.GetComponent<AttachablePart>().attachmentPosition = position;
-            networkedPart.GetComponent<AttachablePart>().attachmentRotation = rotation;
-            Debug.LogWarning("Could not properly give ownership because of switch to purrdiction");
-            //networkedPart.GetComponent<AttachablePart>().GiveOwnership(player.GetComponent<NetworkTransform>().owner);
-    
-            AddAttachedPartForClients(networkedPart, player, partMass, attachedSegment, localPos, localRot);
-            SyncLegOrderRpc(player);
+            AttachablePart attachablePart = creaturePart.GetComponent<AttachablePart>();
+            PartDragging dragging = creaturePart.GetComponent<PartDragging>();
+            Rigidbody attachedSegment = attachablePart.attachedSegmentRigidbody;
+            if (attachedSegment == null)
+            {
+                Debug.LogError($"[Attach] {creaturePart.name} has no attachedSegmentRigidbody");
+                return;
+            }
+
+            var p = GetComponent<Player>();
+
+            int segmentIndex;
+            if (attachedSegment.transform == p.wormHead) segmentIndex = -1;
+            else
+            {
+                segmentIndex = p.wormBodySegments.IndexOf(attachedSegment.transform);
+                if (segmentIndex < 0)
+                {
+                    Debug.LogError("[Attach] part is attached to something that isn't a worm segment");
+                    return;
+                }
+            }
+
+            int partId = PartRegistry.IdOf(dragging.partData);
+            Vector3 localPos = attachedSegment.transform.InverseTransformPoint(attachablePart.attachmentPosition);
+            Quaternion localRot = Quaternion.Inverse(attachedSegment.transform.rotation) * attachablePart.attachmentRotation;
+
+            AddAttachedPartServerSide(partId, segmentIndex, localPos, localRot);
+        }
+
+        [ServerRpc]
+        public void AddAttachedPartServerSide(int partId, int segmentIndex, Vector3 localPos, Quaternion localRot)
+        {
+            var p = GetComponent<Player>();
+            if (!PartRegistry.TryGet(partId, out CreaturePartData data))
+            {
+                Debug.LogError($"[Attach] unknown part id {partId}");
+                return;
+            }
+
+            Transform seg = segmentIndex < 0 ? p.wormHead
+                          : segmentIndex < p.wormBodySegments.Count ? p.wormBodySegments[segmentIndex] : null;
+            if (seg == null) { Debug.LogError("[Attach] bad segment index on server"); return; }
+
+            Vector3 worldPos = seg.TransformPoint(localPos);
+            Quaternion worldRot = seg.rotation * localRot;
+
+            // created as a child of the player so GetComponentInParent<Player>() and transform.root work on every peer
+            PredictedObjectID? id = p.predictionManager.hierarchy.Create(
+                data.prefab,
+                p.transform.InverseTransformPoint(worldPos),
+                Quaternion.Inverse(p.transform.rotation) * worldRot,
+                p,
+                p.owner);
+
+            if (id == null)
+            {
+                Debug.LogError("[Attach] part create failed (is the prefab in PredictedPrefabs?)");
+                return;
+            }
+
+            AddAttachedPartForClients(id.Value, partId, segmentIndex, localPos, localRot);
         }
 
         [ObserversRpc(runLocally: true)]
-        public void AddAttachedPartForClients(GameObject part, GameObject partPlayer, float partMass, GameObject attachedSegment, Vector3 localPos, Quaternion localRot)
+        public void AddAttachedPartForClients(PredictedObjectID partObjectId, int partId, int segmentIndex, Vector3 localPos, Quaternion localRot)
         {
-            Debug.Log($"AddAttachedPartForClients: part instanceID={part.GetInstanceID()} name={part.name}");
-    
+            pending.Enqueue(new PendingPart
+            {
+                id = partObjectId, partId = partId, segmentIndex = segmentIndex,
+                localPos = localPos, localRot = localRot, enqueuedAt = Time.unscaledTime
+            });
+        }
+
+        // Does nothing while the queue is empty. The part only exists on a client once a verified frame
+        // containing it arrives, so we retry until it does. Only the front is tried so every peer
+        // wires parts in the same order.
+        private void Update()
+        {
+            if (pending.Count == 0) return;
+
+            PendingPart d = pending.Peek();
+            if (Time.unscaledTime - d.enqueuedAt > 10f)
+            {
+                Debug.LogWarning($"[Attach] gave up waiting for part {d.id} to appear on this peer");
+                pending.Dequeue();
+                return;
+            }
+
+            if (TryWire(d)) pending.Dequeue();
+        }
+
+        private bool TryWire(PendingPart d)
+        {
+            var p = GetComponent<Player>();
+            if (p.wormBodySegments.Count < p.WormSegmentCount) return false;                        
+            if (!p.predictionManager.hierarchy.TryGetGameObject(d.id, out GameObject part)) return false;   
+            if (!PartRegistry.TryGet(d.partId, out CreaturePartData data)) return true;                     
+
+            Transform seg = d.segmentIndex < 0 ? p.wormHead : p.wormBodySegments[d.segmentIndex];
+            Rigidbody segRb = seg.GetComponent<Rigidbody>();
             var ap = part.GetComponent<AttachablePart>();
-            ap.attachedSegmentRigidbody = attachedSegment.GetComponent<Rigidbody>();
+            var drag = part.GetComponent<PartDragging>();
+            var rb = part.GetComponent<Rigidbody>();
+            if (ap == null || rb == null)
+            {
+                Debug.LogError($"[Attach] {part.name} needs AttachablePart and a Rigidbody");
+                return true;
+            }
+
+            // same relative pose on every peer before the joint is created
+            part.transform.position = seg.TransformPoint(d.localPos);
+            part.transform.rotation = seg.rotation * d.localRot;
+            Physics.SyncTransforms();
+
+            ap.attachedSegmentRigidbody = segRb;
             ap.attachmentPosition = part.transform.position;
             ap.attachmentRotation = part.transform.rotation;
-            ap.SetLocalOffsets(localPos, localRot);
-            
-            part.transform.position = attachedSegment.GetComponent<Rigidbody>().transform.TransformPoint(localPos);
-            part.transform.rotation = attachedSegment.GetComponent<Rigidbody>().transform.rotation * localRot;
+            ap.SetLocalOffsets(d.localPos, d.localRot);
 
-            Player targetPlayer = partPlayer.GetComponent<Player>();
-            targetPlayer.attachedWormParts.Add(part);
+            p.attachedWormParts.Add(part);
 
-            part.GetComponent<PartDragging>().DeselectPart();
-            part.GetComponent<PartDragging>().enabled = false;
+            if (drag != null) { drag.DeselectPart(); drag.enabled = false; }
 
-            var rb = part.GetComponent<Rigidbody>();
-            if (rb != null)
+            rb.isKinematic = false;
+            rb.useGravity = true;
+            ap.ConfigureRigidBody(rb, data.mass);
+
+            LegPart leg = part.GetComponent<LegPart>();
+            if (leg != null)
             {
-                rb.isKinematic = false;
-                rb.useGravity = true;
+                p.MaxVelocity += GameParameters.LegMaxVelocityIncrease;
+                leg.enabled = true;
             }
 
-            LegPart legPart = part.GetComponent<LegPart>();
-            if (legPart != null)
-            {
-                targetPlayer.MaxVelocity += GameParameters.LegMaxVelocityIncrease;
-                legPart.enabled = true;
-            }
+            RefreshLegOrder(p);
 
-            Rigidbody partRigidbody = part.GetComponent<Rigidbody>();
-            if (partRigidbody == null)
-                partRigidbody = part.AddComponent<Rigidbody>();
-    
-            ap.ConfigureRigidBody(partRigidbody, partMass);
+            Transform endPoint = drag != null ? drag.endPoint : null;
+            if (endPoint == null) return true;
 
-            Transform endPoint = part.GetComponent<PartDragging>().endPoint;
-            if (endPoint == null)
-                return;
-
-            if (isOwner && owner == localPlayer) ap.ConfigureHingeJoint(endPoint);
-            
-            partPlayer.GetComponent<WormPhysics>().IgnorePartCollisionWithWorm(part, ap.attachedSegmentRigidbody.transform);
+            ap.ConfigureHingeJoint(endPoint);                       // every peer, not only the owner
+            p.GetComponent<WormPhysics>().IgnorePartCollisionWithWorm(part, segRb.transform);
+            return true;
         }
-        
-        [ObserversRpc]
-        public void SyncLegOrderRpc(GameObject specificPlayer)
+
+        private void RefreshLegOrder(Player p)
         {
-            List<LegPart> legParts = new List<LegPart>();
-            foreach (GameObject part in specificPlayer.GetComponent<Player>().attachedWormParts)
+            var legParts = new List<LegPart>();
+            foreach (GameObject part in p.attachedWormParts)
             {
+                if (part == null) continue;
                 LegPart leg = part.GetComponent<LegPart>();
-                if (leg != null)
-                    legParts.Add(leg);
+                if (leg != null) legParts.Add(leg);
             }
 
             float totalTime = GameParameters.LegMoveTime;
             for (int i = 0; i < legParts.Count; i++)
-            {
                 legParts[i].timeOffset = i * (totalTime / legParts.Count);
-            }
+        }
+
+        #endregion
+
+        #region Removing / clearing
+
+        // Same name and signature as before so existing callers keep working.
+        public void DestroyPart(GameObject part)
+        {
+            if (part == null) return;
+
+            var p = GetComponent<Player>();
+            p.attachedWormParts.Remove(part);
+            if (p.predictionManager.hierarchy.TryGetId(part, out PredictedObjectID id))
+                DeletePartServerSide(id);        // a predicted object: delete through the hierarchy
+            else
+                Destroy(part);                   // a local builder copy
         }
 
         [ServerRpc]
-        public void DestroyPart(GameObject part)
+        private void DeletePartServerSide(PredictedObjectID id)
         {
-            Destroy(part);
-        }
-        
-        public IEnumerator ReactivateAttachedParts()
-        {
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-    
-            foreach (GameObject attachedPart in GetComponent<Player>().attachedWormParts)
-            {
-                Debug.Log($"ReactivateAttachedParts: part instanceID={attachedPart.GetInstanceID()} name={attachedPart.name}");
-                attachedPart.SetActive(true);
-                if (isOwner && owner == localPlayer) yield return StartCoroutine(attachedPart.GetComponent<AttachablePart>().ResetJoint());
-            }
-    
-            GetComponent<WormPhysics>().IgnoreWormSelfCollision();
+            GetComponent<Player>().predictionManager.hierarchy.Delete(id);
         }
 
         [ServerRpc]
@@ -139,11 +236,38 @@ namespace Player
         {
             ClearAttachedPartsObserverSide();
         }
-        
+
+        [ObserversRpc]
+        private void ClearAttachedPartsObserverSide()
+        {
+            GetComponent<Player>().attachedWormParts.Clear();
+        }
+
+        #endregion
+
+        public IEnumerator ReactivateAttachedParts()
+        {
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            foreach (GameObject attachedPart in GetComponent<Player>().attachedWormParts)
+            {
+                if (attachedPart == null) continue;
+
+                Debug.Log($"ReactivateAttachedParts: part instanceID={attachedPart.GetInstanceID()} name={attachedPart.name}");
+                attachedPart.SetActive(true);
+
+                // every peer owns a joint for this part now, so every peer resets it
+                yield return StartCoroutine(attachedPart.GetComponent<AttachablePart>().ResetJoint());
+            }
+
+            GetComponent<WormPhysics>().IgnoreWormSelfCollision();
+        }
+
         public void AddAlreadyAttachedParts()
         {
             if (!isOwner) return;
-            
+
             Debug.Log("adding already attached parts, LocalPlayer owner: " + LocalPlayer.Instance.owner);
 
             foreach (GameObject part in LocalPlayer.Instance.attachedWormParts)
@@ -151,37 +275,16 @@ namespace Player
                 Debug.Log("adding already attached part " + part.name);
                 AddAlreadyAttachedPart(part);
             }
-            
+
             ClearAttachedParts();
         }
-        
-        #region Private Methods
-        
-        [ObserversRpc]
-        private void ClearAttachedPartsObserverSide()
-        {
-            GetComponent<Player>().attachedWormParts.Clear();
-        }
-        
-        private void AddPartToWorm(GameObject creaturePart)
-        {
-            AttachablePart attachablePart = creaturePart.GetComponent<AttachablePart>();
-            Rigidbody attachedSegment = attachablePart.attachedSegmentRigidbody;
-            Vector3 position = attachablePart.attachmentPosition;
-            Quaternion rotation = attachablePart.attachmentRotation;
-            GameObject prefab = creaturePart.GetComponent<PartDragging>().Prefab;
-            float partMass = creaturePart.GetComponent<PartDragging>().partData.mass;
-            
-            Vector3 localPos = attachedSegment.transform.InverseTransformPoint(position);
-            Quaternion localRot = Quaternion.Inverse(attachedSegment.transform.rotation) * rotation;
 
-            AddAttachedPartServerSide(prefab, position, rotation, attachedSegment.gameObject, partMass, gameObject, localPos, localRot);
-        }
-        
+        #region Private Methods
+
         private void ReturnPartToPlayerInventory(GameObject part, List<PartPair> partPairs)
         {
             string partName = part.name.Replace("(Clone)", "").Trim();
-            
+
             foreach (var pair in partPairs)
             {
                 if (pair.part3DPrefab != null && pair.part3DPrefab.name == partName)
@@ -191,7 +294,7 @@ namespace Player
                     return;
                 }
             }
-            
+
             Destroy(part);
         }
 
@@ -199,7 +302,7 @@ namespace Player
         {
             var netRb = part.GetComponent<PredictedRigidbody>();
             if (netRb != null) netRb.enabled = false;
-            
+
             PartDragging partDraggingComponent = part.GetComponent<PartDragging>();
             GameObject prefab = partDraggingComponent.Prefab;
 
@@ -208,7 +311,7 @@ namespace Player
                 Debug.LogWarning($"Prefab reference is null for {part.name}");
                 return;
             }
-    
+
             // Check for LegPart component directly
             LegPart legPart = part.GetComponent<LegPart>();
             if (legPart != null)
@@ -216,7 +319,7 @@ namespace Player
                 GetComponent<Player>().MaxVelocity -= GameParameters.LegMaxVelocityIncrease;
                 legPart.enabled = false;
             }
-    
+
             CreateDuplicatePart(part, prefab);
         }
 
@@ -229,28 +332,28 @@ namespace Player
             newPart.GetComponent<PredictedRigidbody>().enabled = false;
             newPart.GetComponent<Rigidbody>().isKinematic = true;
             newPart.GetComponent<Rigidbody>().useGravity = false;
-            
+
             AttachablePart newAttachablePart = newPart.GetComponent<AttachablePart>();
             AttachablePart oldAttachablePart = part.GetComponent<AttachablePart>();
             newAttachablePart.attachedSegmentRigidbody = oldAttachablePart.attachedSegmentRigidbody;
             newAttachablePart.attachmentPosition = oldAttachablePart.attachmentPosition;
             newAttachablePart.attachmentRotation = oldAttachablePart.attachmentRotation;
-            
+
             DontDestroyOnLoad(newPart);
             newPart.name = prefab.name;
             newPart.transform.localScale = part.transform.localScale;
-                
+
             PartDragging partDragging = newPart.GetComponent<PartDragging>();
 
             CreatureBuilder.CreatureBuilder creatureBuilder = FindFirstObjectByType<CreatureBuilder.CreatureBuilder>();
-            
+
             if (partDragging != null)
             {
                 partDragging.enabled = true;
                 creatureBuilder.ResetPartDragging(partDragging);
                 partDragging.Clamp();
             }
-            
+
             LegPart legPart = newPart.GetComponent<LegPart>();
             if (legPart != null)
             {
@@ -260,7 +363,7 @@ namespace Player
             creatureBuilder.parts.Add(newPart);
             DestroyPart(part);
         }
-        
+
         #endregion
     }
 }

@@ -192,7 +192,10 @@ namespace Player
             if (headPart == null) headPart = wormHead.GetComponent<CreaturePart>();
             headPart.RefreshGrounding(delta);
             for (int i = 0; i < segmentParts.Count; i++) segmentParts[i].RefreshGrounding(delta);
-            foreach (var part in attachedWormParts) part.GetComponent<CreaturePart>().RefreshGrounding(delta);
+
+            attachedWormParts.RemoveAll(p => p == null);   
+            foreach (var part in attachedWormParts)
+                part.GetComponent<CreaturePart>().RefreshGrounding(delta);
         }
 
         public struct State : IPredictedData<State>
