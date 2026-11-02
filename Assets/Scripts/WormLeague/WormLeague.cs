@@ -6,6 +6,7 @@ using Random = UnityEngine.Random;
 using GameLoop;
 using Player;
 using PurrNet;
+using PurrNet.Prediction;
 using Unity.VisualScripting;
 using UnityEngine.InputSystem;
 
@@ -17,7 +18,9 @@ namespace WormLeague
         
         public WormLeagueUI wormLeagueUI;
         
-        public Ball ball;
+        [HideInInspector] public Ball ball;
+        public GameObject ballPrefab; 
+        public Vector3 ballSpawnPoint = new Vector3(0f, 2f, 3f);
 
         public int teamRedScore = 0;
         public int teamBlueScore = 0;
@@ -25,6 +28,9 @@ namespace WormLeague
         public List<GameObject> spawnPoints;
         public List<GameObject> redSpawnPoints;
         public List<GameObject> blueSpawnPoints;
+        
+        private PredictionManager predictionManager;
+        private PredictedObjectID? ballId;
         
         #endregion
         
@@ -40,25 +46,45 @@ namespace WormLeague
         void Start()
         {
             Debug.Log("worm league starting");
-            Debug.Log("[Worm League] loading scene manager: " + LoadingScreenManager.instance);
-            //StartCoroutine(Ddebug());
-            AssignPlayerTeams();
-            AssignPlayerSpawnPoints();
-            
+
             if (LoadingScreenManager.instance != null)
             {
                 LoadingScreenManager.LoadingScreenForSelf(false);
                 if (isServer) LoadingScreenManager.LoadingScreenForAll(false);
             }
+
+            StartCoroutine(StartWhenServerReady());
+        }
+        
+        private IEnumerator StartWhenServerReady()
+        {
+            while (true)
+            {
+                if (IsServerNow)
+                {
+                    predictionManager = FindFirstObjectByType<PredictionManager>();
+                    if (predictionManager != null && predictionManager.hierarchy != null) break;
+                }
+                yield return new WaitForSecondsRealtime(0.1f);
+            }
+
+            AssignPlayerTeams();
+            AssignPlayerSpawnPoints();
+            SpawnBall();
         }
 
         private void Update()
         {
-            if(Input.GetKey(KeyCode.B))ball.transform.position = new Vector3(0f, 1f, 3f);
+            if (!Input.GetKey(KeyCode.B)) return;
+            Ball b = GetBall();
+            if (b != null) b.transform.position = new Vector3(0f, 1f, 3f);
         }
 
         public void OnDestroy()
         {
+            if (ballId != null && predictionManager != null && predictionManager.hierarchy != null)
+                predictionManager.hierarchy.Delete(ballId.Value);
+
             GameOver();
         }
 
@@ -68,17 +94,26 @@ namespace WormLeague
 
         public void OnGoalScored(string team)
         {
-            if (!isServer) return;
-            if (ball == null || ball.LastTouchingPlayer == null) return;
+            if (!IsServerNow) return;
 
-            var manager = NetworkManager.main;
-            if (manager == null)
+            Ball b = GetBall();
+            if (b == null)
             {
-                Debug.LogWarning("Goal: NetworkManager.main is null");
+                Debug.LogWarning("[Goal] ball reference is null on the server: spawn failed or the Ball component was destroyed");
                 return;
             }
 
-            var scorer = ball.LastTouchingPlayer;
+            b.Reset();  
+
+            var manager = NetworkManager.main;
+            if (manager == null) { Debug.LogWarning("[Goal] NetworkManager.main is null"); return; }
+
+            var scorer = b.LastTouchingPlayer;
+            if (scorer == null)
+            {
+                Debug.LogWarning("[Goal] no last-touching player; ball reset, no score awarded (is Ball tracking touches?)");
+                return;
+            }
 
             if (!PlayerRegister.Players.TryGetValue(scorer.playerID, out PlayerRegister.PlayerData scoringPlayer))
             {
@@ -94,7 +129,7 @@ namespace WormLeague
                 manager.SendToAll(packet);
             }
 
-            ball.Reset();
+            b.Reset();
 
             if (string.IsNullOrEmpty(scoringPlayer.name))
                 scoringPlayer.name = $"Player {scorer.playerID}";
@@ -157,6 +192,36 @@ namespace WormLeague
         #endregion
         
         #region Private Methods
+        
+        private void SpawnBall()
+        {
+            if (ballPrefab == null) { Debug.LogError("[WormLeague] ballPrefab is not assigned"); return; }
+            if (ballId != null) return;   // already spawned
+
+            ballId = predictionManager.hierarchy.Create(ballPrefab, ballSpawnPoint, Quaternion.identity);
+            if (ballId == null)
+            {
+                Debug.LogError("[WormLeague] ball create failed (is the prefab in the PredictedPrefabs list?)");
+                return;
+            }
+            Debug.Log($"[WormLeague] ball spawned, id={ballId}");
+            
+            GetBall(); 
+            if (ball == null)
+                Debug.LogError("[WormLeague] spawned ball has no Ball component. Check that Ball.Start() isn't destroying itself.");
+        }
+        
+        private bool IsServerNow => NetworkManager.main != null && NetworkManager.main.isServer;
+
+        private Ball GetBall()
+        {
+            if (ball != null) return ball;
+            if (ballId == null || predictionManager == null) return null;
+            GameObject go = predictionManager.hierarchy.GetGameObject(ballId.Value);
+            if (go == null) return null;
+            ball = go.GetComponent<Ball>();
+            return ball;
+        }
 
         private static int pointer;
 

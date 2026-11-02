@@ -6,25 +6,9 @@ using UnityEngine;
 
 namespace WormLeague
 {
-    public class Ball : NetworkBehaviour
+    public class Ball : MonoBehaviour
     {
-        void Start()
-        {
-            if (!isServer && !isHost)
-            {
-                Destroy(this);
-            }
-        }
         public Player.Player LastTouchingPlayer { get; private set; }
-
-        protected override void OnSpawned(bool asServer)
-        {
-            if (!isServer)
-            {
-                //GetComponent<Rigidbody>().isKinematic = true;
-                //test
-            }
-        }
 
         public void Reset()
         {
@@ -42,12 +26,10 @@ namespace WormLeague
 
         private void OnCollisionEnter(Collision collision)
         {
-            if (!collision.gameObject.CompareTag("CreaturePart") && 
-                !collision.gameObject.CompareTag("WormBodySegment"))
-                return;
-            
+            if (!collision.gameObject.CompareTag("CreaturePart") &&
+                !collision.gameObject.CompareTag("WormBodySegment")) return;
+
             LastTouchingPlayer = collision.gameObject.GetComponentInParent<Player.Player>();
-            
         }
     }
 }
