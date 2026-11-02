@@ -8,6 +8,9 @@ namespace Player
     [RequireComponent(typeof(LineRenderer))]
     public class WormRenderer : MonoBehaviour
     {
+        
+        public event System.Action OnMeshReady;
+        
         [Header("Worm Visual Settings")]
         public Material wormMaterial;
         public GameObject wormMeshObject;
@@ -46,6 +49,7 @@ namespace Player
         {
             yield return new WaitForEndOfFrame();
             GenerateTubeMesh();
+            OnMeshReady?.Invoke();
         }
 
         void SetupWormRenderer()

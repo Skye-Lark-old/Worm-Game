@@ -18,6 +18,9 @@ namespace Player
         private Camera mainCamera;
         private HighlightOutline playerOutline;
         
+        private WormRenderer wormRenderer;
+        private Color? teamColor;
+        
         void Start()
         {
             //SceneManager.sceneLoaded += OnSceneLoaded;
@@ -30,20 +33,25 @@ namespace Player
         
         void OnEnable()
         {
+            wormRenderer = GetComponent<WormRenderer>();
+            wormRenderer.OnMeshReady += ApplyOutline;
+
             GetComponent<Player>().OnPlayerTeamChanged += HandleTeamChanged;
             CinemachineCore.CameraUpdatedEvent.AddListener(OnCinemachineUpdate);
             SceneManager.sceneLoaded += OnSceneLoaded;
-            
+
             GetComponent<Player>().OnWormDeath += OnPlayerDeath;
             GetComponent<PlayerSpawning>().OnWormRespawn += OnWormRespawn;
         }
 
         void OnDisable()
         {
+            if (wormRenderer != null) wormRenderer.OnMeshReady -= ApplyOutline;
+
             GetComponent<Player>().OnPlayerTeamChanged -= HandleTeamChanged;
             CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCinemachineUpdate);
             SceneManager.sceneLoaded -= OnSceneLoaded;
-            
+
             GetComponent<Player>().OnWormDeath -= OnPlayerDeath;
             GetComponent<PlayerSpawning>().OnWormRespawn -= OnWormRespawn;
         }
@@ -71,15 +79,9 @@ namespace Player
             }
             else
             {
-                if (playerOutline != null)
-                {
-                    playerOutline.RemoveHighlight(); 
-                }
-
-                if (usernameText != null)
-                {
-                    usernameText.enabled = false;
-                }
+                teamColor = null;
+                if (playerOutline != null) playerOutline.RemoveHighlight();
+                if (usernameText != null) usernameText.enabled = false;
             }
         }
 
@@ -110,18 +112,20 @@ namespace Player
 
         private void HandleTeamChanged(string team)
         {
-            Color teamColor = Color.white;
-            if (team == "Red")
-            {
-                teamColor = Color.red;
-            }
-            else if (team == "Blue")
-            {
-                teamColor = Color.blue;
-            }
-
-            StartCoroutine(HandleTeamChanged(gameObject, teamColor));
+            teamColor = team == "Red" ? Color.red : team == "Blue" ? Color.blue : Color.white;
+            ApplyOutline();   
         }
+        
+        private void ApplyOutline()
+        {
+            if (teamColor == null || wormRenderer == null || wormRenderer.wormMeshObject == null) return;
+            
+            if (playerOutline == null)
+                playerOutline = wormRenderer.wormMeshObject.AddComponent<HighlightOutline>();
+
+            playerOutline.HighlightPart(teamColor.Value, 0.1f);
+        }
+
 
         // [ServerRpc]
         // private void ServerHandleTeamChanged(GameObject player, Color teamColor)
@@ -136,32 +140,32 @@ namespace Player
         //     StartCoroutine(HandleTeamChanged(player, teamColor));
         // }
 
-        private IEnumerator HandleTeamChanged(GameObject player, Color teamColor)
-        {
-            Transform wormMeshTransform = null;
-            float timeout = 5f;
-            float elapsed = 0f;
-
-            while (wormMeshTransform == null)
-            {
-                wormMeshTransform = transform.Find("WormMesh");
-
-                if (wormMeshTransform == null)
-                {
-                    if (elapsed >= timeout)
-                    {
-                        Debug.LogWarning($"WormMesh not found on {gameObject.name} after {timeout}s, skipping outline.");
-                        yield break;
-                    }
-                    elapsed += Time.deltaTime;
-                    yield return null;
-                }
-            }
-
-            GameObject wormMesh = wormMeshTransform.gameObject;
-            if (playerOutline == null) playerOutline = wormMesh.AddComponent<HighlightOutline>();
-            playerOutline.HighlightPart(teamColor, 0.1f);
-        }
+        // private IEnumerator HandleTeamChanged(GameObject player, Color teamColor)
+        // {
+        //     Transform wormMeshTransform = null;
+        //     float timeout = 5f;
+        //     float elapsed = 0f;
+        //
+        //     while (wormMeshTransform == null)
+        //     {
+        //         wormMeshTransform = GetComponent<WormRenderer>().wormMeshObject.transform;
+        //
+        //         if (wormMeshTransform == null)
+        //         {
+        //             if (elapsed >= timeout)
+        //             {
+        //                 Debug.LogWarning($"WormMesh not found on {gameObject.name} after {timeout}s, skipping outline.");
+        //                 yield break;
+        //             }
+        //             elapsed += Time.deltaTime;
+        //             yield return null;
+        //         }
+        //     }
+        //
+        //     GameObject wormMesh = wormMeshTransform.gameObject;
+        //     if (playerOutline == null) playerOutline = wormMesh.AddComponent<HighlightOutline>();
+        //     playerOutline.HighlightPart(teamColor, 0.1f);
+        // }
         
         #endregion
         
