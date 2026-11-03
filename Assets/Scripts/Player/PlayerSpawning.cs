@@ -150,15 +150,16 @@ namespace Player
         
         public IEnumerator SetWormInCreatureBuilderScene()
         {
+            var wormPhysics = GetComponent<WormPhysics>();
+            
+            wormPhysics.MakeWormKinematic();
+            SetWormSpawnRotation(headRotationInCreatureBuilder);
+            wormPhysics.PositionWormSegments(CreatureBuildingSpawnPoint);
+            player.DeactivatePlayer();
+
             if (player.owner == player.predictionManager.localPlayer)
             {
                 LocalPlayer.Instance.canDie = false;
-                Debug.Log("setting worm in creature builder as owner");
-                var wormPhysics = GetComponent<WormPhysics>();
-                wormPhysics.MakeWormKinematic();
-                SetWormSpawnRotation(headRotationInCreatureBuilder);
-                wormPhysics.PositionWormSegments(CreatureBuildingSpawnPoint);
-                player.DeactivatePlayer();
                 GetComponent<PlayerPartAttachment>().AddAlreadyAttachedParts();
                 player.wormVisualHead.rotation = headRotationInCreatureBuilder;
             }
