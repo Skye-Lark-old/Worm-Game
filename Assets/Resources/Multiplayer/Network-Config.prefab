@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 3210998510615786602}
   - component: {fileID: -1562750120894441832}
   - component: {fileID: 4501501204081815829}
-  - component: {fileID: -1996649251484658470}
   m_Layer: 0
   m_Name: Network-Config
   m_TagString: Untagged
@@ -116,22 +115,3 @@ MonoBehaviour:
     packetLossChance: 10
   _useWebRtcP2P: 0
   _webRtcStunServer: stun:stun.cloudflare.com:3478
---- !u!114 &-1996649251484658470
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4924150260682875050}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a1392aa1bc3d3b4a9ef31b6e6d8d4b5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PurrNet.Prediction::PurrNet.Prediction.PredictedPlayerSpawner
-  _predictionPolicySource: 0
-  _predictionPolicy: 0
-  _desyncPolicy: 0
-  _playerPrefab: {fileID: 3857149077806430327, guid: 84a4084e46c23274facf0350ed1ad874, type: 3}
-  _destroyOnDisconnect: 0
-  spawnPoints: []
-  _waitForSpawnCall: 0

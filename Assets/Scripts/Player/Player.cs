@@ -190,12 +190,16 @@ namespace Player
         private void RefreshAllGrounding(float delta)
         {
             if (headPart == null) headPart = wormHead.GetComponent<CreaturePart>();
-            headPart.RefreshGrounding(delta);
-            for (int i = 0; i < segmentParts.Count; i++) segmentParts[i].RefreshGrounding(delta);
+            if (headPart != null) headPart.RefreshGrounding(delta);
 
-            attachedWormParts.RemoveAll(p => p == null);   
+            for (int i = 0; i < segmentParts.Count; i++)
+            {
+                if (segmentParts[i] == null) { wormWired = false; continue; }   
+                segmentParts[i].RefreshGrounding(delta);
+            }
+
             foreach (var part in attachedWormParts)
-                part.GetComponent<CreaturePart>().RefreshGrounding(delta);
+                if (part != null) part.GetComponent<CreaturePart>().RefreshGrounding(delta);
         }
 
         public struct State : IPredictedData<State>
@@ -462,6 +466,7 @@ namespace Player
 
         protected override void LateAwake()
         {
+            Debug.Log($"[PlayerLife] LateAwake id={GetInstanceID()} owner={owner} isOwner={isOwner} scene='{gameObject.scene.name}' totalPlayers={FindObjectsByType<Player>(FindObjectsSortMode.None).Length}", this);
             wormConstructor = GetComponent<WormConstructor>();
             playerSpawning = GetComponent<PlayerSpawning>();
 
@@ -478,7 +483,17 @@ namespace Player
         
         protected override void Destroyed()
         {
+            Debug.Log($"[PlayerLife] Destroyed id={GetInstanceID()} owner={owner}", this);
             if (predictionManager != null) predictionManager.onRollbackFinished -= OnRollbackFinished;
+        }
+        
+        [ContextMenu("Dump Prediction Setup")]
+        public void DumpPredictionSetup()
+        {
+            foreach (var m in FindObjectsByType<PurrNet.Prediction.PredictionManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                Debug.Log($"[PM] {m.name} scene='{m.gameObject.scene.name}' enabled={m.enabled} active={m.gameObject.activeInHierarchy}", m);
+            foreach (var s in FindObjectsByType<PurrNet.Prediction.PredictedPlayerSpawner>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                Debug.Log($"[PS] {s.name} scene='{s.gameObject.scene.name}' enabled={s.enabled} active={s.gameObject.activeInHierarchy}", s);
         }
         
         #endregion
