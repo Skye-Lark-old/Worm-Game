@@ -121,16 +121,18 @@ namespace Player
 
         public void PositionWormSegments(Vector3 headPosition)
         {
-            player.wormHead.position = headPosition;
+            SetPose(player.wormHead, headPosition, player.wormHead.rotation);
+
             Vector3 currentPosition = headPosition;
             Vector3 backDirection = -player.wormHead.forward;
 
             for (int i = 0; i < player.wormBodySegments.Count; i++)
             {
                 currentPosition += backDirection * GameParameters.SegmentMaxPartDistance;
-                player.wormBodySegments[i].position = currentPosition;
-                player.wormBodySegments[i].rotation = player.wormHead.rotation;
+                SetPose(player.wormBodySegments[i], currentPosition, player.wormHead.rotation);
             }
+
+            Physics.SyncTransforms();
         }
         
         public void IgnoreWormSelfCollision()
@@ -206,6 +208,17 @@ namespace Player
                 var a = part.GetComponent<Collider>();
                 var b = attachedWormPart.GetComponent<Collider>();
                 if (a != null && b != null) Physics.IgnoreCollision(a, b, true);
+            }
+        }
+        
+        private static void SetPose(Transform t, Vector3 position, Quaternion rotation)
+        {
+            t.SetPositionAndRotation(position, rotation);
+            PredictedRigidbody prb = t.GetComponent<PredictedRigidbody>();
+            if (prb != null)
+            {
+                prb.position = position;
+                prb.rotation = rotation;
             }
         }
 
