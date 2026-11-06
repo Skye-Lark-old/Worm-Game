@@ -487,13 +487,11 @@ namespace Player
             if (predictionManager != null) predictionManager.onRollbackFinished -= OnRollbackFinished;
         }
         
-        [ContextMenu("Dump Prediction Setup")]
-        public void DumpPredictionSetup()
+        [ContextMenu("Dump Spawners")]
+        public void DumpSpawners()
         {
-            foreach (var m in FindObjectsByType<PurrNet.Prediction.PredictionManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                Debug.Log($"[PM] {m.name} scene='{m.gameObject.scene.name}' enabled={m.enabled} active={m.gameObject.activeInHierarchy}", m);
             foreach (var s in FindObjectsByType<PurrNet.Prediction.PredictedPlayerSpawner>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                Debug.Log($"[PS] {s.name} scene='{s.gameObject.scene.name}' enabled={s.enabled} active={s.gameObject.activeInHierarchy}", s);
+                Debug.Log($"[Spawner] {s.name} scene='{s.gameObject.scene.name}' enabled={s.enabled} active={s.gameObject.activeInHierarchy}", s);
         }
         
         #endregion

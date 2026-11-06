@@ -89,13 +89,13 @@ namespace Player
         
         #region Public Methods
 
-        public void SetSpawnPoint(GameObject inputSpawnpoint)
-        {
-            spawnPoint = inputSpawnpoint.transform.position;
-            spawnRotation = inputSpawnpoint.transform.rotation;
-            spawnPointSet = true;
-            Debug.Log("spawnpoint set with position: " + spawnPoint + " ,rotation: " + spawnRotation);
-        }
+        // public void SetSpawnPoint(GameObject inputSpawnpoint)
+        // {
+        //     spawnPoint = inputSpawnpoint.transform.position;
+        //     spawnRotation = inputSpawnpoint.transform.rotation;
+        //     spawnPointSet = true;
+        //     Debug.Log("spawnpoint set with position: " + spawnPoint + " ,rotation: " + spawnRotation);
+        // }
         
         public void SetWormInGameScene()
         {
@@ -103,6 +103,10 @@ namespace Player
 
             if (!hasBeenVisuallyEnabledInGameScene) DisableWormVisually();
             
+            var wp = GetComponent<WormPhysics>();
+            wp.ToggleWormCollisions(false);
+            wp.ToggleWormKinematics(true);
+
             if (player.isOwner)
             {
                 SetWormInGameSceneAsOwner();
@@ -113,11 +117,19 @@ namespace Player
                 StartCoroutine(AssignPlayerTeam());
                 EnableWormVisually();
                 hasBeenVisuallyEnabledInGameScene = true;
-                GetComponent<WormPhysics>().ToggleWormCollisions(true);
-                GetComponent<WormPhysics>().ToggleWormKinematics(false);   // forces can't move kinematic bodies
             }
-            
         }
+        
+        public void SetSpawnPoint(Vector3 position, Quaternion rotation)
+        {
+            spawnPoint = position;
+            spawnRotation = rotation;
+            spawnPointSet = true;
+            Debug.Log($"[Spawn set] pos={position}\n{System.Environment.StackTrace}");
+        }
+
+        public void SetSpawnPoint(GameObject inputSpawnpoint)
+            => SetSpawnPoint(inputSpawnpoint.transform.position, inputSpawnpoint.transform.rotation);
         
         // [ServerRpc]
         // public void SetKinematicStateServer(bool isKinematic, Player playerToUpdate)
@@ -566,8 +578,15 @@ namespace Player
             yield return new WaitForFixedUpdate();
             Debug.Log("[Spawn] after fixed update");
 
-            SetWormSpawnRotation(spawnRotation);
-            SetWormSpawnPosition(spawnPoint);
+            player.RequestRespawn(spawnPoint, spawnRotation);
+            
+            // let the tick apply it before releasing the worm
+            float t = 0f;
+            while (Vector3.Distance(player.wormHead.position, spawnPoint) > 0.5f && t < 1f)
+            {
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
             
             EnableWormLocal();
             

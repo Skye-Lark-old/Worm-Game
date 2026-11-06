@@ -6,6 +6,7 @@ using Random = UnityEngine.Random;
 using GameLoop;
 using Player;
 using PurrNet;
+using PurrNet.Packing;
 using PurrNet.Prediction;
 using Unity.VisualScripting;
 using UnityEngine.InputSystem;
@@ -52,6 +53,14 @@ namespace WormLeague
                 LoadingScreenManager.LoadingScreenForSelf(false);
                 if (isServer) LoadingScreenManager.LoadingScreenForAll(false);
             }
+            
+            var nm = NetworkManager.main;
+            if (nm != null)
+            {
+                nm.Subscribe<SpawnPointPacket>(OnSpawnPointPacket, false);   
+                nm.Subscribe<SpawnPointRequest>(OnSpawnPointRequest, true);  
+                nm.SendToServer(new SpawnPointRequest());
+            }
 
             StartCoroutine(StartWhenServerReady());
         }
@@ -72,6 +81,17 @@ namespace WormLeague
             AssignPlayerSpawnPoints();
             SpawnBall();
         }
+        
+        public struct SpawnPointPacket : IPackedAuto
+        {
+            public PlayerID player;
+            public Vector3 position;
+            public Quaternion rotation;
+        }
+
+        public struct SpawnPointRequest : IPackedAuto { public bool unused; }
+
+        private readonly Dictionary<PlayerID, (Vector3 pos, Quaternion rot)> assignedSpawns = new();
 
         private void Update()
         {
@@ -82,6 +102,13 @@ namespace WormLeague
 
         public void OnDestroy()
         {
+            var nm = NetworkManager.main;
+            if (nm != null)
+            {
+                nm.Unsubscribe<SpawnPointPacket>(OnSpawnPointPacket, false);
+                nm.Unsubscribe<SpawnPointRequest>(OnSpawnPointRequest, true);
+            }
+            
             if (ballId != null && predictionManager != null && predictionManager.hierarchy != null)
                 predictionManager.hierarchy.Delete(ballId.Value);
 
@@ -245,6 +272,22 @@ namespace WormLeague
                 Network.instance.manager.SendToServer<PlayerRegister.PlayerData>(playerData);
             }
         }
+        
+        private void OnSpawnPointRequest(PlayerID sender, SpawnPointRequest req, bool asServer)
+        {
+            if (!asServer) return;
+            if (assignedSpawns.TryGetValue(sender, out var s))
+                NetworkManager.main.SendToAll(new SpawnPointPacket { player = sender, position = s.pos, rotation = s.rot });
+        }
+
+        private void OnSpawnPointPacket(PlayerID sender, SpawnPointPacket p, bool asServer)
+        {
+            if (asServer) return;
+            Debug.Log($"[Spawn recv] for={p.player} local={NetworkManager.main.localPlayer} pos={p.position} rot={p.rotation.eulerAngles}");
+            if (p.player != NetworkManager.main.localPlayer) return;
+            if (LocalPlayer.Instance == null) return;
+            LocalPlayer.Instance.GetComponent<PlayerSpawning>().SetSpawnPoint(p.position, p.rotation);
+        }
     
         private void AssignPlayerTeams()
         {
@@ -326,7 +369,7 @@ namespace WormLeague
                 {
                     if (player.owner == randomPlayer)
                     {
-                        player.GetComponent<PlayerSpawning>().SetSpawnPoint(redSpawnPoint);
+                        AssignSpawn(randomPlayer, player, redSpawnPoint);
                     }
                 }
             }
@@ -344,10 +387,19 @@ namespace WormLeague
                 {
                     if (player.owner == randomPlayer)
                     {
-                        player.GetComponent<PlayerSpawning>().SetSpawnPoint(blueSpawnPoint);
+                        AssignSpawn(randomPlayer, player, blueSpawnPoint);
                     }
                 }
             }
+        }
+        
+        private void AssignSpawn(PlayerID id, Player.Player player, GameObject point)
+        {
+            player.GetComponent<PlayerSpawning>().SetSpawnPoint(point); 
+            Debug.Log($"[Spawn assign] player={id} point='{point.name}' scene='{point.scene.name}' pos={point.transform.position} rot={point.transform.rotation.eulerAngles}", point);
+            assignedSpawns[id] = (point.transform.position, point.transform.rotation);
+            NetworkManager.main.SendToAll(new SpawnPointPacket
+                { player = id, position = point.transform.position, rotation = point.transform.rotation });
         }
         
         #endregion
