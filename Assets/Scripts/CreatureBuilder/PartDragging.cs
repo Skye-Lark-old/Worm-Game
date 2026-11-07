@@ -43,6 +43,12 @@ namespace CreatureBuilder
         #region Built-In Methods
         void Start()
         {
+            if (targetCamera == null)
+            {
+                enabled = false;       
+                return;
+            }
+            
             if (SceneManager.GetActiveScene().name != "CreatureBuilderScene") return;
             
             creatureBuilder = GameObject.Find("CreatureBuilder").GetComponent<CreatureBuilder>();

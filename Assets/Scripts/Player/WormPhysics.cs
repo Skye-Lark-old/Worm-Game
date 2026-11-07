@@ -173,12 +173,12 @@ namespace Player
                 bodySegment.GetComponent<Collider>().enabled = canCollide;
             }
 
-            foreach (GameObject attachedPart in player.attachedWormParts)
+            for (int i = player.attachedWormParts.Count - 1; i >= 0; i--)
             {
-                foreach (Collider col in attachedPart.GetComponentsInChildren<Collider>(false))
-                {
+                GameObject part = player.attachedWormParts[i];
+                if (part == null) { player.attachedWormParts.RemoveAt(i); continue; }
+                foreach (Collider col in part.GetComponentsInChildren<Collider>(false))
                     col.enabled = canCollide;
-                }
             }
         }
         
@@ -202,11 +202,10 @@ namespace Player
             IgnoreCollisionsInDirection(partColliders, nearestWormSegment, true, numSegments);
             IgnoreCollisionsInDirection(partColliders, nearestWormSegment, false, numSegments);
             
-            foreach (var attachedWormPart in player.attachedWormParts)
+            foreach (var other in player.attachedWormParts)
             {
-                if (attachedWormPart == null || attachedWormPart == part) continue;
-                var a = part.GetComponent<Collider>();
-                var b = attachedWormPart.GetComponent<Collider>();
+                if (other == null || other == part) continue;
+                Collider a = part.GetComponent<Collider>(), b = other.GetComponent<Collider>();
                 if (a != null && b != null) Physics.IgnoreCollision(a, b, true);
             }
         }

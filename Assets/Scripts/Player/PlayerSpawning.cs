@@ -37,6 +37,7 @@ namespace Player
         private bool spawnSequenceStarted;
         private bool spawnSequenceDone;
         private bool lobbySetupPending;
+        private bool releasePending;
 
         public event Action OnWormRespawn;
 
@@ -118,6 +119,8 @@ namespace Player
                 EnableWormVisually();
                 hasBeenVisuallyEnabledInGameScene = true;
             }
+            
+            if (releasePending && !player.isOwner) ApplyRelease();
         }
         
         public void SetSpawnPoint(Vector3 position, Quaternion rotation)
@@ -594,6 +597,22 @@ namespace Player
             player.IsInvincible = false;
             spawnSequenceDone = true;
             spawnPointSet = false;
+        }
+        
+        public void OnWormReleased()
+        {
+            if (!GameSceneList.IsSceneAGameScene(SceneManager.GetActiveScene().name)) { releasePending = true; return; }
+            ApplyRelease();
+        }
+
+        private void ApplyRelease()
+        {
+            releasePending = false;
+            hasBeenVisuallyEnabledInGameScene = true;
+            var wp = GetComponent<WormPhysics>();
+            wp.ToggleWormCollisions(true);
+            wp.ToggleWormKinematics(false);
+            EnableWormVisually();
         }
 
         // [ServerRpc]
