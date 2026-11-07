@@ -270,8 +270,9 @@ namespace Player
 
             Debug.Log("adding already attached parts, LocalPlayer owner: " + LocalPlayer.Instance.owner);
 
-            foreach (GameObject part in LocalPlayer.Instance.attachedWormParts)
+            foreach (GameObject part in new List<GameObject>(LocalPlayer.Instance.attachedWormParts))
             {
+                if (part == null) continue;
                 Debug.Log("adding already attached part " + part.name);
                 AddAlreadyAttachedPart(part);
             }

@@ -21,6 +21,9 @@ namespace Player
         private WormRenderer wormRenderer;
         private Color? teamColor;
         
+        private Player player;
+        void Awake() => player = GetComponent<Player>();
+        
         void Start()
         {
             //SceneManager.sceneLoaded += OnSceneLoaded;
@@ -30,7 +33,22 @@ namespace Player
                 EnterGameScene();
             }
         }
-        
+
+        void Update()
+        {
+            UpdateBrokenTexture();
+        }
+
+        private void UpdateBrokenTexture()
+        {
+            float healthPercentage = Mathf.Clamp01(player.currentPlayerHealth / player.maxPlayerHealth);
+
+            Material brokenTexture = wormRenderer.wormMeshObject.GetComponent<MeshRenderer>().materials[1];
+            Color brokenColor = brokenTexture.color;
+            brokenColor.a = 1f - healthPercentage;
+            brokenTexture.color = brokenColor;
+        }
+
         void OnEnable()
         {
             wormRenderer = GetComponent<WormRenderer>();

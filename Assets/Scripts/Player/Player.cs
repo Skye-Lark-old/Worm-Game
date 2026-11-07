@@ -50,6 +50,8 @@ namespace Player
         
         protected override void Simulate(Input input, ref State state, float delta)
         {
+            if (input.healthValid) state.health = Mathf.Clamp(input.health, 0f, maxPlayerHealth);
+            
             // restore the working copies from rolled-back state
             CurrentState = state.wormState;
             attackTimer = state.attackTimerLeft;
@@ -212,6 +214,7 @@ namespace Player
             public DisposableList<PredictedObjectID> segmentIds;
             public DisposableList<PredictedObjectID> deadPartIds;
             public float deadPartTimer;
+            public float health;
             public void Dispose()
             {
                 segmentIds.Dispose();
@@ -222,7 +225,8 @@ namespace Player
         protected override State GetInitialState() => new State
         {
             segmentIds = DisposableList<PredictedObjectID>.Create(),
-            deadPartIds = DisposableList<PredictedObjectID>.Create()
+            deadPartIds = DisposableList<PredictedObjectID>.Create(),
+            health = GameParameters.DefaultPlayerHealth
         };
 
         public struct Input : IPredictedData
@@ -234,6 +238,8 @@ namespace Player
             public Quaternion respawnRotation;
             public bool lobbyMove;
             public Vector3 lobbyTarget;
+            public float health;
+            public bool healthValid;
             public void Dispose() {}
         }
         
@@ -244,6 +250,8 @@ namespace Player
             input.attack |= wantsAttack;  wantsAttack = false;
             input.lobbyMove = wantsLobbyMove;
             input.lobbyTarget = lobbyTarget;
+            input.health = currentPlayerHealth;
+            input.healthValid = true;
             
             if (thirdPersonCamera != null) input.lookForward = thirdPersonCamera.transform.forward;
             
@@ -306,6 +314,10 @@ namespace Player
         
         protected override void UpdateView(State viewState, State? verified)
         {
+            if (!isOwner) currentPlayerHealth = viewState.health;
+
+            if (viewState.isDead == viewWasDead) return;
+            
             if (viewState.isDead == viewWasDead) return;
             viewWasDead = viewState.isDead;
 
