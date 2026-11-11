@@ -574,11 +574,7 @@ namespace Player
 
             if (GameParameters.IsInvincibleInGame) return;
             
-            if (wormBodySegments.Any(s => s.gameObject == hitGameObject) || 
-                attachedWormParts.Contains(hitGameObject))
-            {
-                return;
-            }
+            if (other.transform.IsChildOf(transform)) return;
             
             float collisionForce = other.impulse.magnitude;
 
