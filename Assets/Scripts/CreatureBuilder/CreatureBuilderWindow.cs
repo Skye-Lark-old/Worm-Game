@@ -113,7 +113,6 @@ namespace CreatureBuilder
             if (!isDraggingPart)
             {
                 //isDragging = false;
-                //^ feel free to toggle this back on i just personally didnt like it when testing
             }
         }
     
@@ -177,7 +176,7 @@ namespace CreatureBuilder
                     }
 
                     isDraggingPart = true;
-                    selectedPart = dragging.gameObject; // store the actual owner, not the hit child
+                    selectedPart = dragging.gameObject; 
                     dragging.StartDragging();
                 }
                 else

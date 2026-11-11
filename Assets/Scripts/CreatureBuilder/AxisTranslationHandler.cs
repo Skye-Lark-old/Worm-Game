@@ -37,9 +37,6 @@ namespace CreatureBuilder
 
         private void MoveAlwaysClamped(Vector3 movement)
         {
-            //ngl this is mostly stolen from part dragging thanks alex
-            //could probably be combined but I didn't want to break anything so I was too scared to touch it
-            //if anyone wants to refactor for that feel free but I don't trust me I'm too stupid for that
             GameObject falseWormBody = GameObject.Find("falseWormBody");
             if (falseWormBody == null || partDragging.endPoint == null ||
                 !falseWormBody.TryGetComponent(out Collider wormCollider))

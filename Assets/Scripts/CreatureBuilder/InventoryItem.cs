@@ -11,7 +11,7 @@ namespace CreatureBuilder
         
         public GameObject prefab;
         public InventorySlot originalSlot;
-        public bool infiniteSlot;
+        public bool isInfiniteSlot;
         
         #endregion
         
@@ -129,7 +129,7 @@ namespace CreatureBuilder
 
         private void OnEnterCreatureBuilder()
         {
-            if (infiniteSlot == true)
+            if (isInfiniteSlot == true)
             {
                 canvasGroup.alpha = 1f;
                 canvasGroup.blocksRaycasts = true;
@@ -139,7 +139,7 @@ namespace CreatureBuilder
 
             creatureBuilder.SwitchFromCardTo3DPart(prefab, this);
             gameObject.SetActive(false);
-            if (infiniteSlot == false)
+            if (isInfiniteSlot == false)
             {
                 DestroySelf();
             }

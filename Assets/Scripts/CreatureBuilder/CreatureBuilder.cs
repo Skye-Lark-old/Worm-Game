@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using CreatureParts;
 using Player;
@@ -81,7 +80,7 @@ namespace CreatureBuilder
         
         public void SwitchFromCardTo3DPart(GameObject cardPrefab, InventoryItem card)
         {
-            if (card.infiniteSlot == true)
+            if (card.isInfiniteSlot)
             {
                 hiddenCard = card;
             }
@@ -180,23 +179,19 @@ namespace CreatureBuilder
     
             // corners[0] = bottom-left, corners[1] = top-left, corners[2] = top-right, corners[3] = bottom-right
             Vector2 mousePos = Input.mousePosition;
-    
-            // Calculate normalized position within the window (0-1 range)
+            
             float viewportX = Mathf.InverseLerp(corners[0].x, corners[2].x, mousePos.x);
             float viewportY = Mathf.InverseLerp(corners[0].y, corners[2].y, mousePos.y);
-    
-            // Clamp to 0-1 range in case mouse is outside bounds
+            
             viewportX = Mathf.Clamp01(viewportX);
             viewportY = Mathf.Clamp01(viewportY);
-
-            // Create a ray from the 3D camera through the viewport point
+            
             Ray ray = targetCamera.ViewportPointToRay(new Vector3(viewportX, viewportY, 0));
             return ray.GetPoint(spawnDistance);
         }
         
         private GameObject SpawnPartInWorld(GameObject prefab, Vector3 position)
         {
-            Debug.Log("running spawn part in world");
             GameObject newPart = UnityProxy.InstantiateDirectly(prefab, position, Quaternion.identity);
             if (newPart.GetComponent<MeshCollider>() != null)
             {

@@ -83,7 +83,7 @@ namespace Audio
 
         private void OnWormHeadbutHitShell()
         {
-            //stop whoosing headbut sound, play hitshell sound
+            //stop whooshing headbut sound, play hitshell sound
             playerAudioSource.volume = audioSourceVolume;
             playerAudioSource.clip = headbuttHitShell;
             playerAudioSource.Play();
