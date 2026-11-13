@@ -7,18 +7,24 @@ namespace CreatureParts
 { 
     public class ProjectilePart : AttachablePart 
     { 
+        #region events and variables
+        public event Action OnCannonShoot;
+        
         public GameObject projectilePrefab;
         public Transform firePoint;
         public float recoilForce = 0.25f;
         public float fireCooldown = 0.5f;
         public float shootForce = 0.03f;
         public KeyCode shootKey = KeyCode.R;
-        [SerializeField] private Animator animator;
         
-        public event Action OnCannonShoot;
+        [SerializeField] private Animator animator;
         
         private float lastFireTime;
         private Rigidbody wormRb;
+        
+        #endregion
+
+        #region Built in methods
         
         
         private void Awake()
@@ -46,8 +52,12 @@ namespace CreatureParts
                 lastFireTime = Time.time;
             }
         }
+        
+        #endregion
 
-        void Shoot()
+        #region Private Methods
+
+        private void Shoot()
         {
             OnCannonShoot?.Invoke();
             
@@ -70,13 +80,14 @@ namespace CreatureParts
             ApplyRecoil();
         }
         
-        void ApplyRecoil()
+        private void ApplyRecoil()
         {
             if (wormRb == null) return;
-            print("yeet");
 
             Vector3 recoilDirection = -firePoint.forward;
             wormRb.AddForce(recoilDirection * recoilForce, ForceMode.Impulse);
         }
+        
+        #endregion
     }
 }

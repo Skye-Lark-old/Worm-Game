@@ -6,41 +6,29 @@ namespace CreatureParts
 {
     public class CreatureBodySegment : CreaturePart
     {
-        public bool IsScrunched => currentState.scrunchTimeLeft > 0f;
+        #region public variables
+        [Header("Public Variables")]
+        public bool IsScrunched => currentState.ScrunchTimeLeft > 0f;
         public GameObject visualBodySegment;
 
         public CreaturePart previousSegment;
         public CreaturePart nextSegment;
+        
+        #endregion
+        
+        #region private variables
+        [Header("Private Variables")]
 
         private Coroutine scrunchCoroutine;
-
-        // void Start()
-        // {
-        //     IsScrunched = true;
-        // }
-
-        // public void SetIsScrunched()
-        // {
-        //     IsScrunched = true;
-        //     if (scrunchCoroutine != null)
-        //     {
-        //         StopCoroutine(scrunchCoroutine);
-        //     }
-        //
-        //     scrunchCoroutine = StartCoroutine(ScrunchTimer());
-        // }
-        //
-        // private IEnumerator ScrunchTimer()
-        // {
-        //     yield return new WaitForSeconds(GameParameters.WormSegmentScrunchTime);
-        //     IsScrunched = false;
-        //     scrunchCoroutine = null;
-        // }
+        
+        #endregion
+        
+        #region public methods
         
         public void SetIsScrunched()
         {
             ref var s = ref currentState;
-            s.scrunchTimeLeft = GameParameters.WormSegmentScrunchTime;
+            s.ScrunchTimeLeft = GameParameters.WormSegmentScrunchTime;
         }
 
         public Rigidbody AddJoint(Transform wormPart, Rigidbody previousSegmentRigidBody)
@@ -52,32 +40,24 @@ namespace CreatureParts
             ConfigurableJoint joint = wormPart.AddComponent<ConfigurableJoint>();
             joint.connectedBody = previousSegmentRigidBody;
             joint.anchor = new Vector3(0, 0, -GameParameters.SegmentMaxPartDistance);
-            // joint.connectedAnchor = new Vector3(0, 0, GameParameters.SegmentMaxPartDistance);
-            // joint.autoConfigureConnectedAnchor = false;
-
-            // Lock all position
+            
             joint.xMotion = joint.yMotion = joint.zMotion = ConfigurableJointMotion.Locked;
-
-            // Limit all rotation
             joint.angularXMotion = joint.angularYMotion = joint.angularZMotion = ConfigurableJointMotion.Limited;
 
             float maxAngle = GameParameters.MaxJointAngle;
-
-            // Configure angle limits
+            
             joint.lowAngularXLimit = CreateLimit(-maxAngle);
             joint.highAngularXLimit = CreateLimit(maxAngle);
             joint.angularYLimit = CreateLimit(maxAngle * 0.05f); // Reduced twisting
             joint.angularZLimit = CreateLimit(maxAngle);
-
-            // Configure spring and damper
+            
             SoftJointLimitSpring limitSpring = new SoftJointLimitSpring
             {
                 spring = 1000000f,
                 damper = 10000f
             };
             joint.angularXLimitSpring = joint.angularYZLimitSpring = limitSpring;
-
-            // Configure angular drive
+            
             JointDrive angularDrive = new JointDrive
             {
                 positionSpring = 0f,
@@ -112,6 +92,10 @@ namespace CreatureParts
             joint.targetAngularVelocity = Vector3.zero;
             joint.targetRotation = Quaternion.identity;
         }
+        
+        #endregion
+        
+        #region private methods
 
         private SoftJointLimit CreateLimit(float angle)
         {
@@ -122,5 +106,7 @@ namespace CreatureParts
                 contactDistance = 0f
             };
         }
+        
+        #endregion
     }
 }

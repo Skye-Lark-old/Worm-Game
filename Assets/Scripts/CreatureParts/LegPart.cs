@@ -8,7 +8,7 @@ namespace CreatureParts
     public class LegPart : AttachablePart
     {
         
-        //TODO: refactor to have better code and inverse kinematics
+        //TODO: refactor to have better code and kinematics
         
         public GameObject foot;
 

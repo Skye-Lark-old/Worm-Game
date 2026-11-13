@@ -11,19 +11,28 @@ namespace CreatureParts
             EveryAnimationFrame // Rebake when animation advances
         }
 
-        [Header("Settings")] public BakeMode bakeMode = BakeMode.OnceOnStart;
+        [Header("Settings")] 
+        #region settings
+        public BakeMode bakeMode = BakeMode.OnceOnStart;
         public bool bakeCollider = true;
         public bool bakeOutlineMesh = false;
         public Vector3 meshScale = Vector3.one;
-
-        [Header("References (auto-found if empty)")]
+        
+        #endregion
+        
+        [Header("References")]
         public SkinnedMeshRenderer skinnedMeshRenderer;
 
+        #region variables
         public Animator animator;
 
-        private MeshCollider _meshCollider;
-        private MeshFilter _outlineMeshFilter;
-        private int _lastAnimatorHash;
+        private MeshCollider meshCollider;
+        private MeshFilter outlineMeshFilter;
+        private int lastAnimatorHash;
+        
+        #endregion
+        
+        #region Built in Methods
 
         private void Awake()
         {
@@ -41,10 +50,9 @@ namespace CreatureParts
 
             if (bakeCollider)
             {
-                // Collider goes on THIS object (the root), not the skinned mesh child
-                _meshCollider = GetComponent<MeshCollider>();
-                if (_meshCollider == null)
-                    _meshCollider = gameObject.AddComponent<MeshCollider>();
+                meshCollider = GetComponent<MeshCollider>();
+                if (meshCollider == null)
+                    meshCollider = gameObject.AddComponent<MeshCollider>();
             }
 
             Bake();
@@ -52,17 +60,21 @@ namespace CreatureParts
             if (bakeMode == BakeMode.OnceOnStart)
                 enabled = false;
         }
+        
+        #endregion
+
+        #region Public methods
 
         public void EnableConvex()
         {
             //TODO: call this from creatureBuilding after multiplayer has been merged
-            _meshCollider.convex = true;
+            meshCollider.convex = true;
         }
 
         public void DisableConvex()
         {
             //TODO: call this from creatureBuilding after multiplayer has been merged
-            _meshCollider.convex = false;
+            meshCollider.convex = false;
         }
 
         public void Bake()
@@ -72,10 +84,7 @@ namespace CreatureParts
             Mesh bakedMesh = new Mesh();
             skinnedMeshRenderer.BakeMesh(bakedMesh);
             Debug.Log($"RAW baked bounds: {bakedMesh.bounds}, first vertex: {bakedMesh.vertices[0]}");
-
-            // BakeMesh outputs verts in SMR local space with scale already applied
-            // We need to: rotate by SMR world rotation, then inverse rotate by root rotation
-            // Position offset between SMR and root (they're the same here so this is zero)
+            
             Quaternion smrRot = skinnedMeshRenderer.transform.rotation;
             Quaternion rootInvRot = Quaternion.Inverse(transform.rotation);
             Vector3 posOffset = transform.InverseTransformPoint(skinnedMeshRenderer.transform.position);
@@ -84,7 +93,6 @@ namespace CreatureParts
             for (int i = 0; i < vertices.Length; i++)
             {
                 vertices[i] = rootInvRot * (smrRot * vertices[i]) + posOffset;
-                // Apply scale after rotation
                 vertices[i].x *= meshScale.x;
                 vertices[i].y *= meshScale.y;
                 vertices[i].z *= meshScale.z;
@@ -95,13 +103,17 @@ namespace CreatureParts
 
             Debug.Log($"[SkinnedMeshBaker] After transform - bounds: {bakedMesh.bounds}");
 
-            if (bakeCollider && _meshCollider != null)
+            if (bakeCollider && meshCollider != null)
             {
-                _meshCollider.sharedMesh = null;
-                _meshCollider.sharedMesh = bakedMesh;
-                Debug.Log($"[SkinnedMeshBaker] Collider world bounds: {_meshCollider.bounds}");
+                meshCollider.sharedMesh = null;
+                meshCollider.sharedMesh = bakedMesh;
+                Debug.Log($"[SkinnedMeshBaker] Collider world bounds: {meshCollider.bounds}");
             }
         }
+        
+        #endregion
+
+        #region Private Methods
 
         private void OnDrawGizmosSelected()
         {
@@ -118,9 +130,11 @@ namespace CreatureParts
             if (!Application.isPlaying) return;
             if (skinnedMeshRenderer == null)
                 skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
-            if (_meshCollider == null)
-                _meshCollider = GetComponent<MeshCollider>();
+            if (meshCollider == null)
+                meshCollider = GetComponent<MeshCollider>();
             Bake();
         }
+        
+        #endregion
     }
 }

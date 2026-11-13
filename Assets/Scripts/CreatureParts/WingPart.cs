@@ -7,6 +7,8 @@ namespace CreatureParts
 {
     public class WingPart : AttachablePart
     {
+
+        #region Events and Variables
         public event Action OnWingFlap;
         
         [SerializeField] private float baseForce;
@@ -18,6 +20,10 @@ namespace CreatureParts
         private Rigidbody wormRb;
         private float currentForce;
         private Vector3 savedLaunchDirection;
+        
+        #endregion
+        
+        #region Built in Methods
 
         private void Awake()
         {
@@ -31,9 +37,6 @@ namespace CreatureParts
 
         void Update()
         {
-            //DO NOT CHANGE TO JUMP METHOD. IT DOES NOT WORK IF IT IS JUMP METHOD.
-            //I UNDERSTAND YOU ARE TRYING TO HELP WHOEVER YOU ARE BUT I AM BEGGING YOU PLEASE STOP
-            //THIS IS LIKE THE THIRD TIME WITH THE SAME ISSUE JUST LEAVE IT PLEASE
             if (LocalPlayer.Instance.IsWormGrounded)
             {
                 currentForce = baseForce;
@@ -52,6 +55,10 @@ namespace CreatureParts
                 ApplyThrust();
             }
         }
+        
+        #endregion
+        
+        #region private methods
 
         private void ApplyThrust()
         {
@@ -69,5 +76,7 @@ namespace CreatureParts
                 }
             }
         }
+        
+        #endregion
     }
 }

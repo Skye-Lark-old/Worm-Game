@@ -5,10 +5,17 @@ namespace CreatureParts
 {
     public class FiredProjectile : MonoBehaviour
     {
-        private bool canCollide = false;
-        public GameObject firingPlayer;
+        #region events and variables
         
         public event Action OnProjectileHit;
+        
+        public GameObject firingPlayer;
+        
+        private bool canCollide = false;
+        
+        #endregion
+
+        #region Built in Methods
 
         void Start()
         {
@@ -16,7 +23,11 @@ namespace CreatureParts
             Destroy(gameObject, 5f);
         }
 
-        void EnableCollision()
+        #endregion
+
+        #region private methods
+        
+        private void EnableCollision()
         {
             canCollide = true;
         }
@@ -32,5 +43,7 @@ namespace CreatureParts
             
             Destroy(gameObject);
         }
+        
+        #endregion
     }
 }

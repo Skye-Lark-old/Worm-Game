@@ -6,7 +6,7 @@ namespace CreatureParts
 {
     public class DeadBodyPart : MonoBehaviour
     {
-        
+        #region Built in Methods
         void Start()
         {
             gameObject.layer = LayerMask.NameToLayer("WormRagdoll");
@@ -17,7 +17,6 @@ namespace CreatureParts
             Rigidbody rb = GetComponent<Rigidbody>();
             rb.linearDamping = GameParameters.DeadPartLinearDamping;
             rb.mass = GameParameters.DeadPartMass;
-            //StartCoroutine(SelfDestruct());
         }
         
         void OnCollisionStay(Collision col)
@@ -34,11 +33,7 @@ namespace CreatureParts
                 }
             }
         }
-
-        // private IEnumerator SelfDestruct()
-        // {
-        //     yield return new WaitForSeconds(GameParameters.DeadPartDeleteTime);
-        //     Destroy(gameObject);
-        // }
+        
+        #endregion
     }
 }

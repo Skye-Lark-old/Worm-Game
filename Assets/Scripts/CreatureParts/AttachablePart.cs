@@ -7,6 +7,10 @@ namespace CreatureParts
 {
     public class AttachablePart : CreaturePart
     {
+        
+        #region public variables
+        [Header("Public Variables")]
+        
         public Vector3 defaultConnectedAnchor;
         public Vector3 attachmentPosition;
         public Quaternion attachmentRotation;
@@ -14,10 +18,19 @@ namespace CreatureParts
         public Vector3 localPositionOnAttach;
         public Quaternion localRotationOnAttach;
         
+        #endregion
+        
+        #region private variables
+        [Header("Private Variables")]
+        
         private Transform attachedEndPoint;
         private Vector3 savedAnchor;
         private Vector3 savedConnectedAnchor;
-
+        
+        #endregion
+        
+        #region public methods
+        
         public void CalculateConnection()
         {
             FindNearestWormSegment();
@@ -27,8 +40,6 @@ namespace CreatureParts
         
         public IEnumerator ResetJoint()
         {
-            Debug.Log($"ResetJoint called on {gameObject.name} | attachedEndPoint: {attachedEndPoint} | attachedSegmentRigidbody: {attachedSegmentRigidbody}");
-
             float elapsed = 0f;
             while (((attachedSegmentRigidbody.isKinematic == true) || (gameObject.GetComponent<Rigidbody>().isKinematic == true)) && elapsed < 3f)
             {
@@ -44,7 +55,6 @@ namespace CreatureParts
             attachedSegmentRigidbody.angularVelocity = Vector3.zero;
             
             HingeJoint existing = GetComponent<HingeJoint>();
-            Debug.Log($"Existing hinge: {existing}");
             if (existing != null)
                 Destroy(existing);
             
@@ -128,9 +138,12 @@ namespace CreatureParts
             localRotationOnAttach = localRot;
         }
         
+        #endregion
+        
+        #region Private Methods
+        
         private void FindNearestWormSegment() 
         {
-            Debug.Log("finding nearest worm segment");
             Transform nearestPart = null;
             float shortestDistance = Mathf.Infinity;
     
@@ -146,7 +159,6 @@ namespace CreatureParts
             }
             
             attachedSegmentRigidbody = nearestPart.GetComponent<Rigidbody>();
-            Debug.Log("set attachedSegmentRigidBody to " + attachedSegmentRigidbody);
         }
         
         private void IgnoreCollisionsInDirection(Collider[] partColliders, Transform startSegment, bool forward, int numSegments)
@@ -175,5 +187,7 @@ namespace CreatureParts
                 }
             }
         }
+        
+        #endregion
     }
 }
