@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using GameLoop.GameLobby;
+using GameLobby;
 using PurrNet;
 using PurrNet.Packing;
 using Unity.VisualScripting;

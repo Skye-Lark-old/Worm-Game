@@ -1,25 +1,37 @@
-using System.Collections;
 using System.Collections.Generic;
-using GameLoop.multiplayer;
 using Player;
 using PurrNet;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace GameLoop.GameLobby
+namespace GameLobby
 {
     public class ColorSelection : MonoBehaviour
     {
+        #region public variables
+        
         public GameObject colorSelectionPanel;
         public GameObject buttonPrefab;
         public Image selectColorButtonColor;
         public Material wormMaterial;
         public List<ColorPair> availableColors = new List<ColorPair>();
+        
+        #endregion
+        
+        #region private variables
 
         private List<Button> colorButtons = new List<Button>();
         private Dictionary<int,PlayerID> takenIndices = new Dictionary<int,PlayerID>();
+        
+        #endregion
+        
+        #region built in methods
 
         void Start() => CreateColorButtons();
+        
+        #endregion
+        
+        #region public methods
 
         public void RefreshTakenColors(Dictionary<int,PlayerID> taken)
         {
@@ -70,25 +82,7 @@ namespace GameLoop.GameLobby
             Network.instance.manager.SendToServer(player);
             GetComponent<GameLobby>().CloseColorSelectionPanel();
         }
-
-        private void CreateColorButtons()
-        {
-            foreach (Transform child in colorSelectionPanel.transform)
-                Destroy(child.gameObject);
-            colorButtons.Clear();
-
-            for (int i = 0; i < availableColors.Count; i++)
-            {
-                int index = i;
-                GameObject obj = Instantiate(buttonPrefab, colorSelectionPanel.transform);
-                Button button = obj.GetComponent<Button>();
-                button.onClick.AddListener(() => SetColor(index));
-                colorButtons.Add(button);
-            }
-
-            UpdateColorButtons();
-        }
-
+        
         public void UpdateColorButtons()
         {
             for (int i = 0; i < colorButtons.Count; i++)
@@ -121,5 +115,29 @@ namespace GameLoop.GameLobby
                 }
             }
         }
+        
+        #endregion
+        
+        #region private methods
+
+        private void CreateColorButtons()
+        {
+            foreach (Transform child in colorSelectionPanel.transform)
+                Destroy(child.gameObject);
+            colorButtons.Clear();
+
+            for (int i = 0; i < availableColors.Count; i++)
+            {
+                int index = i;
+                GameObject obj = Instantiate(buttonPrefab, colorSelectionPanel.transform);
+                Button button = obj.GetComponent<Button>();
+                button.onClick.AddListener(() => SetColor(index));
+                colorButtons.Add(button);
+            }
+
+            UpdateColorButtons();
+        }
+        
+        #endregion
     }
 }

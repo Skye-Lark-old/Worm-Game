@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Player;
 using PurrNet;
-using PurrNet.Transports;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
-using System.Linq;
-using Audio;
-using Player;
 
-namespace GameLoop.GameLobby
+namespace GameLobby
 {
     public class GameLobby : MonoBehaviour
     {
@@ -34,7 +30,7 @@ namespace GameLoop.GameLobby
         public GameObject cursorSphere;
         public Vector3 groundAnchorPoint = Vector3.zero;
 
-        public GameObject FakeoutTitleScreen;
+        public GameObject fakeoutTitleScreen;
         public GameObject music;
         public event Action OnGameStart;
         
@@ -65,7 +61,7 @@ namespace GameLoop.GameLobby
         {
             if (Input.GetKey(KeyCode.N))
             {
-                FakeoutTitleScreen.SetActive(true);
+                fakeoutTitleScreen.SetActive(true);
                 music.SetActive(false);
             }
             
@@ -144,7 +140,6 @@ namespace GameLoop.GameLobby
         public void OnPlayerRegistered()
         {
             RefreshColorSelection();
-            //colorSelection.SetInitialColor();
         }
 
         public void OnPlayerRegisterChanged(PlayerID playerID, bool connected)
@@ -191,7 +186,7 @@ namespace GameLoop.GameLobby
         public void StartGame()
         {
             LoadingScreenManager.LoadingScreenForSelf(true);
-            GameLoop.Instance.StartGame();
+            GameLoop.GameLoop.Instance.StartGame();
             OnGameStart?.Invoke();
         }
 

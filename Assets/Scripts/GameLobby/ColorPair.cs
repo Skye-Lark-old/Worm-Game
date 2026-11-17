@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace GameLoop.GameLobby
+namespace GameLobby
 {
     [System.Serializable]
     public class ColorPair
