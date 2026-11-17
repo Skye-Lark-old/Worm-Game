@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using CreatureBuilder;
 using CreatureParts;
+using multiplayer;
 using PurrNet;
 using PurrNet.Prediction;
 using Unity.Cinemachine;

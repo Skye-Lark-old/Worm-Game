@@ -5,6 +5,7 @@ using System.Linq;
 using CreatureBuilder;
 using CreatureParts;
 using DG.Tweening;
+using multiplayer;
 using PurrNet;
 using PurrNet.Pooling;
 using PurrNet.Prediction;

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CreatureBuilder;
-using GameLoop.multiplayer;
+using multiplayer;
 using Player;
 using TMPro;
 using Unity.VisualScripting;

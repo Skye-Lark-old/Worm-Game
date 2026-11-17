@@ -1,5 +1,4 @@
 using System;
-using GameLoop.multiplayer;
 using PurrNet;
 using PurrNet.Prediction;
 using UnityEngine;

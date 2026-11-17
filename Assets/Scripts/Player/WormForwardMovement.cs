@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using CreatureParts;
-using GameLoop.multiplayer;
 using PurrNet;
 using PurrNet.Prediction;
 using UnityEngine;

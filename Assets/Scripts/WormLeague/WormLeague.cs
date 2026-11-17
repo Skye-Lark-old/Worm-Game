@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using GameLoop;
+using multiplayer;
 using Player;
 using PurrNet;
 using PurrNet.Packing;

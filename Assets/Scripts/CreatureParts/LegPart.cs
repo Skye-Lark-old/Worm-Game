@@ -1,6 +1,6 @@
 using System.Collections;
-using GameLoop.multiplayer;
 using PurrNet;
+using PurrNet.Prediction;
 using UnityEngine;
 
 namespace CreatureParts
@@ -215,7 +215,7 @@ namespace CreatureParts
                 }
                 else
                 {
-                    GetComponent<NetworkedPhysicsObject>().AddForce(-GameParameters.LegMoveForce * (-arcDirection));
+                    GetComponent<PredictedRigidbody>().AddForce(-GameParameters.LegMoveForce * (-arcDirection));
                 }
 
                 stepTimer = 0f;
@@ -227,7 +227,7 @@ namespace CreatureParts
 
         private IEnumerator StepRoutine(Vector3 moveDirection)
         {
-            NetworkedPhysicsObject rb = GetComponent<NetworkedPhysicsObject>();
+            PredictedRigidbody rb = GetComponent<PredictedRigidbody>();
 
             float liftTime = 0.08f;
             float pushTime = GameParameters.LegMoveTime;
@@ -259,7 +259,7 @@ namespace CreatureParts
                 Vector3 jumpDirection =
                     Vector3.Slerp(transform.up, Vector3.up, GameParameters.WormJumpAngle).normalized;
 
-                GetComponent<NetworkedPhysicsObject>().AddForce(jumpDirection * GameParameters.LegJumpForce);
+                GetComponent<PredictedRigidbody>().AddForce(jumpDirection * GameParameters.LegJumpForce);
             }
         }
     }

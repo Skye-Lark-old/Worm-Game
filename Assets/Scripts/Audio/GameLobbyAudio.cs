@@ -8,12 +8,12 @@ namespace Audio
         
         void Start()
         {
-            GetComponent<GameLobby>().OnGameStart += OnGameStart;
+            GetComponent<GameLobby.GameLobby>().OnGameStart += OnGameStart;
         }
 
         void OnDestroy()
         {
-            GetComponent<GameLobby>().OnGameStart -= OnGameStart;
+            GetComponent<GameLobby.GameLobby>().OnGameStart -= OnGameStart;
         }
 
         private void OnGameStart()

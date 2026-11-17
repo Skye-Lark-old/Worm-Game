@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using CreatureParts;
-using GameLoop.multiplayer;
+using PurrNet.Prediction;
 using UnityEngine;
 
 namespace Player
@@ -59,7 +59,7 @@ namespace Player
                 Transform wormPart = wormParts[i];
                 if (middleIndices != null && (middleIndices.Contains(i)))
                 {
-                    wormPart.GetComponent<NetworkedPhysicsObject>().AddForce(Vector3.down * GameParameters.WormMiddleSegmentScrunchForce);
+                    wormPart.GetComponent<PredictedRigidbody>().AddForce(Vector3.down * GameParameters.WormMiddleSegmentScrunchForce);
                 }
                 else
                 {
@@ -67,7 +67,7 @@ namespace Player
                     {
                         Vector3 forwardDirection = Vector3.Slerp(previousPart.forward, wormHead.forward, GameParameters.WormJumpPreviousPartVsHeadAngle);
                         Vector3 jumpDirection = Vector3.Slerp(forwardDirection, Vector3.up, GameParameters.WormJumpAngle).normalized;
-                        wormPart.GetComponent<NetworkedPhysicsObject>().AddForce(jumpDirection * GameParameters.WormJumpForce);
+                        wormPart.GetComponent<PredictedRigidbody>().AddForce(jumpDirection * GameParameters.WormJumpForce);
                     }
                 }
                 previousPart = wormParts[i];

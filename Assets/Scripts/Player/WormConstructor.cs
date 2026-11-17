@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using CreatureParts;
-using GameLoop.multiplayer;
 using PurrNet;
 using PurrNet.Pooling;
 using PurrNet.Prediction;
